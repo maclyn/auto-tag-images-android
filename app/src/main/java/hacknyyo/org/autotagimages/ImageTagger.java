@@ -1,6 +1,8 @@
 package hacknyyo.org.autotagimages;
 
+import android.app.Activity;
 import android.content.Context;
+import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Environment;
@@ -59,7 +61,8 @@ public class ImageTagger {
         });
     }
 
-    public void getTag(Context ctx, String path){
+    public void getTag(final Context ctx, final SQLiteDatabase db, final String path,
+                       final String name, final String thumbId){
         mListener = (MainActivity)ctx;
         File photo = new File(path);
         try {
@@ -119,6 +122,8 @@ public class ImageTagger {
                         for(Double d : innerInnerResult.probs){
                             Log.d("debug",d.toString());
                         }
+
+                        DatabaseEditor.addTags(path, name, thumbId, tagInfos, db);
                         mListener.setTagInfos(tagInfos);
                     }
 

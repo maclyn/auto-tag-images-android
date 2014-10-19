@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.app.ActionBar;
 import android.app.Dialog;
 import android.app.Fragment;
+import android.app.FragmentManager;
 import android.app.ProgressDialog;
 import android.content.ContentResolver;
 import android.content.Context;
@@ -41,6 +42,8 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
+import static hacknyyo.org.autotagimages.MainActivity.UntaggedFragment.*;
+
 
 public class MainActivity extends Activity implements ActionBar.OnNavigationListener, ImageTagger.BackGroundTaskListener {
     public static final String TAG = "MainActivity";
@@ -48,9 +51,6 @@ public class MainActivity extends Activity implements ActionBar.OnNavigationList
     private ArrayList<TagInfo> tagInfos;
     Dialog d;
     public ImageTagger t;
-    String latestThumbId = "";
-    String latestPath = "";
-    String latestName = "";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -99,6 +99,12 @@ public class MainActivity extends Activity implements ActionBar.OnNavigationList
     public boolean onOptionsItemSelected(MenuItem item) {
         int id = item.getItemId();
         if (id == R.id.action_tag_all) {
+            //Tag all the images remaining
+            List<ThumbHolder> holders = getHolders(this, this.getContentResolver());
+            for(ThumbHolder h : holders) {
+                t.getTag(this, ((AutotagApp) this.getApplication()).getDatabase(), h.filePath,
+                        h.name, h.thumbPath);
+            }
             return true;
         }
         return super.onOptionsItemSelected(item);
@@ -112,7 +118,7 @@ public class MainActivity extends Activity implements ActionBar.OnNavigationList
                     .commit();
         } else {
             getFragmentManager().beginTransaction()
-                    .replace(R.id.container, UntaggedFragment.newInstance())
+                    .replace(R.id.container, newInstance())
                     .commit();
         }
         return true;
@@ -126,11 +132,14 @@ public class MainActivity extends Activity implements ActionBar.OnNavigationList
         }
 
         //Add it to the database
-        DatabaseEditor.addTags(latestPath, latestName, latestThumbId, tags, ((AutotagApp)this.getApplication()).getDatabase());
         Toast.makeText(this, "Tagged.", Toast.LENGTH_SHORT).show();
     }
 
     public static class TaggedFragment extends Fragment {
+        public void tagAll(){
+
+        }
+
         public class TagAdapter extends BaseAdapter {
             List<Tag> tags;
             LayoutInflater li;
@@ -278,13 +287,6 @@ public class MainActivity extends Activity implements ActionBar.OnNavigationList
     }
 
     public static class UntaggedFragment extends Fragment {
-        public class ThumbHolder {
-            String filePath;
-            String thumbPath;
-            String name;
-            Boolean hasFired;
-        }
-
         public class PictureAdapter extends BaseAdapter {
             ImageTagger t;
             List<ThumbHolder> files;
@@ -347,10 +349,8 @@ public class MainActivity extends Activity implements ActionBar.OnNavigationList
                         files.get(position).hasFired = true;
                         String toUploadPath = files.get(position).filePath;
                         ((MainActivity)context).showDialog();
-                        ((MainActivity)context).latestPath = path;
-                        ((MainActivity)context).latestName = name;
-                        ((MainActivity)context).latestThumbId = thumbId;
-                        t.getTag(context, toUploadPath);
+                        t.getTag(context, ((AutotagApp)((MainActivity)context).getApplication()).getDatabase(),
+                                toUploadPath, name, thumbId);
                     }
                 });
                 return convertView;
@@ -379,72 +379,77 @@ public class MainActivity extends Activity implements ActionBar.OnNavigationList
         public View onCreateView(LayoutInflater inflater, ViewGroup container,
                                  Bundle savedInstanceState) {
             ListView rootView = (ListView) inflater.inflate(R.layout.fragment_tagged, container, false);
-            List<ThumbHolder> thl = new ArrayList<ThumbHolder>();
-            //Check to see if files need to be tagged
-            ContentResolver cr = this.getActivity().getContentResolver();
-            Cursor c = cr.query(MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
-                    new String[]{MediaStore.Images.ImageColumns.DISPLAY_NAME,
-                                MediaStore.Images.ImageColumns._ID,
-                                MediaStore.Images.ImageColumns.DATA}, null, null,
-                                MediaStore.Images.ImageColumns.DATE_TAKEN + " desc");
-            if(c.moveToFirst()){
-                int filePathColumn = c.getColumnIndex(MediaStore.Images.ImageColumns.DATA);
-                int nameColumn = c.getColumnIndex(MediaStore.Images.ImageColumns.DISPLAY_NAME);
-                int thumbnail = c.getColumnIndex(MediaStore.Images.ImageColumns._ID); //ID in thumbnail column
-                while(!c.isAfterLast()){
-                    String path = c.getString(filePathColumn);
-                    String name = c.getString(nameColumn);
-                    int id = c.getInt(thumbnail);
-                    //Log.d(TAG, "Name: " + name);
-                    //Log.d(TAG, "Path: " + path);
-                    //Log.d(TAG, "Id: " + id);
-                    if(thumbnail != 0){
-                        //Query for path for thumbnail
-                        Cursor c2 = cr.query(MediaStore.Images.Thumbnails.EXTERNAL_CONTENT_URI,
-                                new String[]{MediaStore.Images.Thumbnails.DATA},
-                                MediaStore.Images.Thumbnails.IMAGE_ID + "=?",
-                                new String[]{String.valueOf(id)}, null);
-                        if(c2.moveToFirst()){
-                            int dataColumn = c2.getColumnIndex(MediaStore.Images.Thumbnails.DATA);
-                            //We have a column; add it
-                            ThumbHolder th = new ThumbHolder();
-                            th.filePath = path;
-                            th.name = name;
-                            th.thumbPath = c2.getString(dataColumn);
-                            th.hasFired = false;
-                            thl.add(th);
-                        }
-                        c2.close();
-                    }
-                    c.moveToNext();
-                }
-            }
-            c.close();
 
-            //Compare this with file_state table
-            List<String> alreadyTagged = new ArrayList<String>();
-            Cursor cs = ((AutotagApp)this.getActivity().getApplication()).getDatabase().query(
-                    DatabaseHelper.TABLE_FILE_STATE, null, null, null, null, null, null, null);
-            if(cs.moveToFirst()){
-                int nameField = cs.getColumnIndex(DatabaseHelper.COLUMN_FILE_PATH);
-                while(!cs.isAfterLast()){
-                    alreadyTagged.add(cs.getString(nameField));
-                    cs.moveToNext();
-                }
-            }
-
-            List<ThumbHolder> realHolders = new ArrayList<ThumbHolder>();
-            for(ThumbHolder thumbHolder : thl){
-                if(!alreadyTagged.contains(thumbHolder.filePath)){
-                    realHolders.add(thumbHolder);
-                }
-            }
-
+            List<ThumbHolder> realHolders = getHolders(getActivity(),
+                    getActivity().getContentResolver());
             //We have all the thumbnails; handle it
             PictureAdapter pa = new PictureAdapter(this.getActivity(), realHolders,
                     ((MainActivity)this.getActivity()).t);
             rootView.setAdapter(pa);
             return rootView;
         }
+    }
+
+    public static List<ThumbHolder> getHolders(Activity a, ContentResolver cr){
+        List<ThumbHolder> thl = new ArrayList<ThumbHolder>();
+        //Check to see if files need to be tagged
+        Cursor c = cr.query(MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+                new String[]{MediaStore.Images.ImageColumns.DISPLAY_NAME,
+                        MediaStore.Images.ImageColumns._ID,
+                        MediaStore.Images.ImageColumns.DATA}, null, null,
+                MediaStore.Images.ImageColumns.DATE_TAKEN + " desc");
+        if(c.moveToFirst()){
+            int filePathColumn = c.getColumnIndex(MediaStore.Images.ImageColumns.DATA);
+            int nameColumn = c.getColumnIndex(MediaStore.Images.ImageColumns.DISPLAY_NAME);
+            int thumbnail = c.getColumnIndex(MediaStore.Images.ImageColumns._ID); //ID in thumbnail column
+            while(!c.isAfterLast()){
+                String path = c.getString(filePathColumn);
+                String name = c.getString(nameColumn);
+                int id = c.getInt(thumbnail);
+                //Log.d(TAG, "Name: " + name);
+                //Log.d(TAG, "Path: " + path);
+                //Log.d(TAG, "Id: " + id);
+                if(thumbnail != 0){
+                    //Query for path for thumbnail
+                    Cursor c2 = cr.query(MediaStore.Images.Thumbnails.EXTERNAL_CONTENT_URI,
+                            new String[]{MediaStore.Images.Thumbnails.DATA},
+                            MediaStore.Images.Thumbnails.IMAGE_ID + "=?",
+                            new String[]{String.valueOf(id)}, null);
+                    if(c2.moveToFirst()){
+                        int dataColumn = c2.getColumnIndex(MediaStore.Images.Thumbnails.DATA);
+                        //We have a column; add it
+                        ThumbHolder th = new ThumbHolder();
+                        th.filePath = path;
+                        th.name = name;
+                        th.thumbPath = c2.getString(dataColumn);
+                        th.hasFired = false;
+                        thl.add(th);
+                    }
+                    c2.close();
+                }
+                c.moveToNext();
+            }
+        }
+        c.close();
+
+        //Compare this with file_state table
+        List<String> alreadyTagged = new ArrayList<String>();
+        Cursor cs = ((AutotagApp)a.getApplication()).getDatabase().query(
+                DatabaseHelper.TABLE_FILE_STATE, null, null, null, null, null, null, null);
+        if(cs.moveToFirst()){
+            int nameField = cs.getColumnIndex(DatabaseHelper.COLUMN_FILE_PATH);
+            while(!cs.isAfterLast()){
+                alreadyTagged.add(cs.getString(nameField));
+                cs.moveToNext();
+            }
+        }
+
+        List<ThumbHolder> realHolders = new ArrayList<ThumbHolder>();
+        for(ThumbHolder thumbHolder : thl){
+            if(!alreadyTagged.contains(thumbHolder.filePath)){
+                realHolders.add(thumbHolder);
+            }
+        }
+        return realHolders;
     }
 }
