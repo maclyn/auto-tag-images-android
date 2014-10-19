@@ -33,6 +33,7 @@ import android.widget.ImageView;
 import android.widget.ListAdapter;
 import android.widget.ListView;
 import android.widget.RelativeLayout;
+import android.widget.SearchView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -42,15 +43,13 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
-import static hacknyyo.org.autotagimages.MainActivity.UntaggedFragment.*;
-
-
 public class MainActivity extends Activity implements ActionBar.OnNavigationListener, ImageTagger.BackGroundTaskListener {
     public static final String TAG = "MainActivity";
     private static final String STATE_SELECTED_NAVIGATION_ITEM = "selected_navigation_item";
     private ArrayList<TagInfo> tagInfos;
     Dialog d;
     public ImageTagger t;
+    SQLiteDatabase db;
 
     List<ThumbHolder> holderList;
     int holdersToHandle = 0;
@@ -63,6 +62,8 @@ public class MainActivity extends Activity implements ActionBar.OnNavigationList
         final ActionBar actionBar = getActionBar();
         actionBar.setDisplayShowTitleEnabled(false);
         actionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_LIST);
+
+        db = ((AutotagApp)this.getApplication()).getDatabase();
 
         actionBar.setListNavigationCallbacks(
                 new ArrayAdapter<String>(
@@ -95,6 +96,26 @@ public class MainActivity extends Activity implements ActionBar.OnNavigationList
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.main, menu);
+        SearchView sv = (SearchView) menu.findItem(R.id.searchView).getActionView();
+        sv.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+            @Override
+            public boolean onQueryTextSubmit(String query) { //Open an image
+                return false;
+            }
+
+            @Override
+            public boolean onQueryTextChange(String newText) { //Query and change ListAdapter
+                //Cursor c = db.query(DatabaseHelper.TABLE_TAGS, null, n)
+                return false;
+            }
+        });
+        sv.setOnCloseListener(new SearchView.OnCloseListener() {
+            @Override
+            public boolean onClose() { //Reset view
+                ((TaggedFragment) MainActivity.this.getFragmentManager().findFragmentById(R.id.container)).setTaggedShow();
+                return false;
+            }
+        });
         return true;
     }
 
@@ -110,7 +131,7 @@ public class MainActivity extends Activity implements ActionBar.OnNavigationList
                 ThumbHolder h = holders.remove(0);
                 holdersToHandle--;
                 t.getTag(this, ((AutotagApp) this.getApplication()).getDatabase(), h.filePath,
-                        h.name, h.thumbPath);
+                        h.name, h.thumbPath, true);
                 showDialog();
             }
             return true;
@@ -126,7 +147,7 @@ public class MainActivity extends Activity implements ActionBar.OnNavigationList
                     .commit();
         } else {
             getFragmentManager().beginTransaction()
-                    .replace(R.id.container, newInstance())
+                    .replace(R.id.container, UntaggedFragment.newInstance())
                     .commit();
         }
         return true;
@@ -138,7 +159,7 @@ public class MainActivity extends Activity implements ActionBar.OnNavigationList
             ThumbHolder h = holderList.remove(0);
             holdersToHandle--;
             t.getTag(this, ((AutotagApp) this.getApplication()).getDatabase(), h.filePath,
-                    h.name, h.thumbPath);
+                    h.name, h.thumbPath, true);
         } else {
             if (d != null) {
                 d.dismiss();
@@ -264,9 +285,14 @@ public class MainActivity extends Activity implements ActionBar.OnNavigationList
 
         @Override
         public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                Bundle savedInstanceState) {
+                                 Bundle savedInstanceState) {
             ListView rootView = (ListView) inflater.inflate(R.layout.fragment_tagged, container, false);
             view = rootView;
+            setTaggedShow();
+            return rootView;
+        }
+
+        public void setTaggedShow(){
             SQLiteDatabase database = ((AutotagApp) this.getActivity().getApplication()).getDatabase();
             new AsyncTask<Object, Void, TagAdapter>() {
                 @Override
@@ -291,7 +317,6 @@ public class MainActivity extends Activity implements ActionBar.OnNavigationList
                     if(view != null) view.setAdapter(adapter);
                 }
             }.execute(database, this);
-            return rootView;
         }
     }
 
@@ -363,7 +388,7 @@ public class MainActivity extends Activity implements ActionBar.OnNavigationList
                         String toUploadPath = files.get(position).filePath;
                         ((MainActivity)context).showDialog();
                         t.getTag(context, ((AutotagApp)((MainActivity)context).getApplication()).getDatabase(),
-                                toUploadPath, name, thumbId);
+                                toUploadPath, name, thumbId, true);
                     }
                 });
                 return convertView;
