@@ -37,9 +37,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 
-public class MainActivity extends Activity implements ActionBar.OnNavigationListener {
+public class MainActivity extends Activity implements ActionBar.OnNavigationListener, ImageTagger.BackGroundTaskListener {
     public static final String TAG = "MainActivity";
     private static final String STATE_SELECTED_NAVIGATION_ITEM = "selected_navigation_item";
+    private ArrayList<TagInfo> tagInfos;
     public ImageTagger t;
 
     @Override
@@ -106,6 +107,11 @@ public class MainActivity extends Activity implements ActionBar.OnNavigationList
                     .commit();
         }
         return true;
+    }
+
+    @Override
+    public void setTagInfos(ArrayList<TagInfo> tags) {
+        tagInfos = tags;
     }
 
     public static class TaggedFragment extends Fragment {
