@@ -39,9 +39,8 @@ import java.util.List;
 
 public class MainActivity extends Activity implements ActionBar.OnNavigationListener {
     public static final String TAG = "MainActivity";
-
     private static final String STATE_SELECTED_NAVIGATION_ITEM = "selected_navigation_item";
-    ImageTagger t;
+    public ImageTagger t;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -62,6 +61,7 @@ public class MainActivity extends Activity implements ActionBar.OnNavigationList
                                 "Untagged"
                         }), this);
         t = new ImageTagger();
+        t.setAccessToken();
     }
 
     @Override
@@ -90,10 +90,6 @@ public class MainActivity extends Activity implements ActionBar.OnNavigationList
         int id = item.getItemId();
         if (id == R.id.action_tag_all) {
             return true;
-        } else if (id == R.id.action_test) {
-            t.setAccessToken();
-        } else if (id == R.id.action_test_2) {
-            t.getTag();
         }
         return super.onOptionsItemSelected(item);
     }
@@ -233,14 +229,16 @@ public class MainActivity extends Activity implements ActionBar.OnNavigationList
         }
 
         public class PictureAdapter extends BaseAdapter {
+            ImageTagger t;
             List<ThumbHolder> files;
             LayoutInflater li;
             Context context;
 
-            public PictureAdapter(Context context, List<ThumbHolder> files) {
+            public PictureAdapter(Context context, List<ThumbHolder> files, ImageTagger t) {
                 this.context = context;
                 this.files = files;
                 this.li = ((Activity) context).getLayoutInflater();
+                this.t = t;
             }
 
             @Override
@@ -259,7 +257,7 @@ public class MainActivity extends Activity implements ActionBar.OnNavigationList
             }
 
             @Override
-            public View getView(int position, View convertView, ViewGroup parent) {
+            public View getView(final int position, View convertView, ViewGroup parent) {
                 SquareHolder sh;
                 if (convertView == null) {
                     convertView = li.inflate(R.layout.image_square, null);
@@ -279,6 +277,15 @@ public class MainActivity extends Activity implements ActionBar.OnNavigationList
                         .into(sh.imageView);
 
                 sh.textView.setText(files.get(position).name);
+
+                convertView.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        //Upload the file
+                        String toUploadPath = files.get(position).filePath;
+                        t.getTag(context, toUploadPath);
+                    }
+                });
                 return convertView;
             }
 
@@ -347,7 +354,8 @@ public class MainActivity extends Activity implements ActionBar.OnNavigationList
             c.close();
 
             //We have all the thumbnails; handle it
-            PictureAdapter pa = new PictureAdapter(this.getActivity(), thl);
+            PictureAdapter pa = new PictureAdapter(this.getActivity(), thl,
+                    ((MainActivity)this.getActivity()).t);
             rootView.setAdapter(pa);
             return rootView;
         }

@@ -16,6 +16,6 @@ import retrofit.mime.TypedFile;
 public interface ClarifaiTagService {
     @Multipart
     //@FormUrlEncoded
-    @PUT("/tag/")
+    @POST("/tag/")
     public void getTag(@Header("Authorization") String accessToken, @Part("encoded_image")TypedFile photo, Callback<CloudTag> response);
 }

@@ -1,6 +1,9 @@
 package hacknyyo.org.autotagimages;
 
+import android.content.Context;
+import android.net.Uri;
 import android.util.Log;
+import android.webkit.MimeTypeMap;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -17,6 +20,8 @@ import retrofit.http.Path;
 import retrofit.mime.TypedFile;
 
 public class ImageTagger {
+    public static final String TAG = "ImageTagger";
+
     private static final String clientId = "uXcLjdijZ1EyyV3aP320XFWTeZhJuBT0_RnqOWEn";
     private static final String clientSecret = "jEnJLQ2tPHxrBODPGNYr-EssEO993wo-QKGjUgcw";
     private RestAdapter restAdapter = new RestAdapter.Builder()
@@ -43,12 +48,23 @@ public class ImageTagger {
         });
     }
 
-    public void getTag(){
-        File photo = new File("/storage/emulated/0/DCIM/Camera/1009141400a.jpg");
-        TypedFile typedFile = new TypedFile("application/picture", photo);
-        ClarifaiTagService service = restAdapter.create(ClarifaiTagService.class);
-        service.getTag("Bearer " + accessToken,typedFile,
+    public void getTag(Context ctx, String path){
+        File photo = new File(path);
 
+        String type = null;
+        String extension = MimeTypeMap.getFileExtensionFromUrl(path);
+        if(extension != null) {
+            type = MimeTypeMap.getSingleton().getMimeTypeFromExtension(extension);
+        }
+        if(type == null) {
+            Uri localUri = Uri.fromFile(photo);
+            type = ctx.getContentResolver().getType(localUri);
+        }
+        Log.d(TAG, "MIME type: " + type);
+        TypedFile typedFile = new TypedFile(type, photo);
+
+        ClarifaiTagService service = restAdapter.create(ClarifaiTagService.class);
+        service.getTag("Bearer " + accessToken, typedFile,
                 new Callback<CloudTag>() {
                     @Override
                     public void success(CloudTag cloudTag, Response response) {
