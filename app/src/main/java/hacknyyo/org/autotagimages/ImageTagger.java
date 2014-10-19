@@ -13,6 +13,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.util.ArrayList;
 import java.util.List;
 
 import retrofit.Callback;
@@ -34,6 +35,12 @@ public class ImageTagger {
     private String accessToken;
     private List<String> classes;
     private List<Double> probs;
+    private ArrayList<TagInfo> tagInfos = new ArrayList<TagInfo>();
+    private BackGroundTaskListener mListener;
+
+    public interface BackGroundTaskListener{
+        public void setTagInfos(ArrayList<TagInfo> tags);
+    }
 
     public void setAccessToken(){
         ClarifaiTokenService service = restAdapter.create(ClarifaiTokenService.class);
@@ -53,6 +60,7 @@ public class ImageTagger {
     }
 
     public void getTag(Context ctx, String path){
+        mListener = (MainActivity)ctx;
         File photo = new File(path);
         try {
             Bitmap photoBmp = MediaStore.Images.Media.getBitmap(ctx.getContentResolver(), Uri.fromFile(photo));
@@ -98,12 +106,21 @@ public class ImageTagger {
                             List<Result> results = cloudTag.getResults();
                             InnerResult innerResult = results.get(0).result;
                             InnerInnerResult innerInnerResult = innerResult.tag;
+                            classes = innerInnerResult.classes;
+                            probs = innerInnerResult.probs;
+                            for(int i = 0; i < classes.size(); i ++){
+                                TagInfo temp = new TagInfo();
+                                temp.setClasses(classes.get(i));
+                                temp.setProbs(probs.get(i));
+                                tagInfos.add(temp);
+                            }
                             for(String s : innerInnerResult.classes){
                                 Log.d("debug",s);
                             }
                             for(Double d : innerInnerResult.probs){
                                 Log.d("debug",d.toString());
                             }
+                            mListener.setTagInfos(tagInfos);
                         /*
                         Log.d("debug","it does get here");
                         try {
@@ -137,4 +154,6 @@ public class ImageTagger {
         } catch (Exception e){
         }
     }
+
+
 }
