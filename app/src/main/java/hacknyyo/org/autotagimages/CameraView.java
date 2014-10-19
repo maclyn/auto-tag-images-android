@@ -136,7 +136,7 @@ public class CameraView extends SurfaceView implements SurfaceHolder.Callback {
 
     public void takeSmartPicture(boolean isNormal){
         if(mCamera != null){
-            PhotoHandler ph = new PhotoHandler(getContext(),mCamera);
+            PhotoHandler ph = new PhotoHandler(getContext(),mCamera,isNormal);
             mCamera.takePicture(null,null, ph);
             Log.d("debug","Picture taken");
         }

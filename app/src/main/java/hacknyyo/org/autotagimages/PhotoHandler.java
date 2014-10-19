@@ -23,15 +23,18 @@ public class PhotoHandler implements Camera.PictureCallback {
 
     private final Context context;
     private final Camera camera;
+    private boolean isNormal;
 
-    public PhotoHandler(Context context, Camera c) {
+    public PhotoHandler(Context context, Camera c,boolean isNormal) {
         this.context = context;
         this.camera = c;
+        this.isNormal = isNormal;
     }
 
     @Override
     public void onPictureTaken(byte[] bytes, Camera cam) {
         Log.d(TAG, "Bytes received");
+
         File photoDirectory = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DCIM);
         //Find photo directory within DCIM that contains "camera"
         File subdirs[] = photoDirectory.listFiles();
@@ -48,6 +51,9 @@ public class PhotoHandler implements Camera.PictureCallback {
             saveLocation = photoDirectory; //Fallback here if we don't have a "Camera" folder
         }
         photoDirectory = saveLocation;
+        if(!isNormal){
+            photoDirectory = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DCIM)+"/auto_tag_tmp/");
+        }
         if (!photoDirectory.exists() && !photoDirectory.mkdirs()) {
             Toast.makeText(context, "R/W Error to photodir: " + photoDirectory.getPath(), Toast.LENGTH_SHORT).show();
             return;
