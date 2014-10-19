@@ -83,5 +83,14 @@ public class PhotoHandler implements Camera.PictureCallback {
             Toast.makeText(context, "Couldn't save image: " + e.getMessage(),
                     Toast.LENGTH_LONG).show();
         }
+        /*
+        File dir = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DCIM)+"/auto_tag_tmp/");
+        if(dir.isDirectory()){
+            String[] children = dir.list();
+            for (int i = 0; i < children.length; i++) {
+                new File(dir, children[i]).delete();
+            }
+        }
+        */
     }
 }
