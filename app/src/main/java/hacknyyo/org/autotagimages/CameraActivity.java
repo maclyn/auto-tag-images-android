@@ -57,6 +57,14 @@ public class CameraActivity extends Activity implements SurfaceHolder.Callback{
             @Override
             public void onClick(View v) {
                 view.takeSmartPicture(true);
+                Toast.makeText(CameraActivity.this,"Took regular picture",Toast.LENGTH_LONG).show();
+            }
+        });
+        smartButton = (ImageButton)findViewById(R.id.smartButton);
+        smartButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                view.takeSmartPicture(false);
                 Toast.makeText(CameraActivity.this,"Took smart picture",Toast.LENGTH_LONG).show();
             }
         });
