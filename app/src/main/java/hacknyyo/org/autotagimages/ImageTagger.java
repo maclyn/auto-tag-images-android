@@ -2,6 +2,9 @@ package hacknyyo.org.autotagimages;
 
 import android.util.Log;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.util.List;
 
 import retrofit.Callback;
@@ -41,13 +44,44 @@ public class ImageTagger {
     public void getTag(){
         ClarifaiTagService service = restAdapter.create(ClarifaiTagService.class);
         service.getTag("Bearer " + accessToken,"http://assets.worldwildlife.org/photos/2842/images/hero_small/shutterstock_12730534.jpg",
+
                 new Callback<CloudTag>() {
                     @Override
                     public void success(CloudTag cloudTag, Response response) {
+                        Log.d("debug",cloudTag.getStatus_msg());
+                        Log.d("debug",cloudTag.getStatus_code());
+                        List<Result> results = cloudTag.getResults();
+                        InnerResult innerResult = results.get(0).result;
+                        InnerInnerResult innerInnerResult = innerResult.tag;
+                        for(String s : innerInnerResult.classes){
+                            Log.d("debug",s);
+                        }
+                        for(Double d : innerInnerResult.probs){
+                            Log.d("debug",d.toString());
+                        }
+                        /*
+                        Log.d("debug","it does get here");
+                        try {
+                            BufferedReader reader = new BufferedReader(new InputStreamReader(response.getBody().in()));
+                            StringBuilder sb = new StringBuilder();
+                            String line = "";
+                            try{
+                                while((line = reader.readLine())!= null){
+                                    sb.append(line);
+                                }
+                            }catch (IOException e){
+
+                            }
+                            Log.d("debug",sb.toString());
+                        }catch(IOException e){
+
+                        }
+
                         classes = cloudTag.getClasses();
                         probs = cloudTag.getProbs();
                         Log.d("debug",classes.get(0));
                         Log.d("debug",probs.get(0).toString());
+                        */
                     }
 
                     @Override
