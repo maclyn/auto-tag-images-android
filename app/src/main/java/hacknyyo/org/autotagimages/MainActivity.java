@@ -6,10 +6,15 @@ import android.app.Fragment;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.graphics.BitmapFactory;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Environment;
 import android.provider.ContactsContract;
+import android.provider.MediaStore;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -18,15 +23,22 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.BaseAdapter;
+import android.widget.ImageView;
 import android.widget.ListAdapter;
 import android.widget.ListView;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 
+import com.squareup.picasso.Picasso;
+
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
 
 public class MainActivity extends Activity implements ActionBar.OnNavigationListener {
+    public static final String TAG = "MainActivity";
+
     private static final String STATE_SELECTED_NAVIGATION_ITEM = "selected_navigation_item";
     ImageTagger t;
 
@@ -47,8 +59,7 @@ public class MainActivity extends Activity implements ActionBar.OnNavigationList
                         new String[] {
                                 "Tagged",
                                 "Untagged"
-                        }),
-                this);
+                        }), this);
         t = new ImageTagger();
     }
 
@@ -129,8 +140,36 @@ public class MainActivity extends Activity implements ActionBar.OnNavigationList
 
             @Override
             public View getView(int position, View convertView, ViewGroup parent) {
+                RelativeLayout tagRow = (RelativeLayout) convertView;
+                if(convertView == null){
+                    tagRow = (RelativeLayout) li.inflate(R.layout.tagged_row, null);
+                }
 
-                return new View(context);
+                //Set images
+                //Get images from within tags
+                List<String> files = tags.get(position).getFiles();
+                for(int i = 0; i < 3 && i < tags.size(); i++){
+                    ImageView iv;
+                    switch(i){
+                        case 0:
+                            iv = (ImageView) tagRow.findViewById(R.id.rowThumb1);
+                            break;
+                        case 1:
+                            iv = (ImageView) tagRow.findViewById(R.id.rowThumb2);
+                            break;
+                        case 2:
+                            iv = (ImageView) tagRow.findViewById(R.id.rowThumb3);
+                            break;
+                        case 3:
+                            iv = (ImageView) tagRow.findViewById(R.id.rowThumb4);
+                            break;
+                    }
+                    Picasso.with(context).load("file:" + files.get(i));
+                }
+
+                //Set text
+                ((TextView)tagRow.findViewById(R.id.tagName)).setText(tags.get(position).getName());
+                return tagRow;
             }
         }
 
@@ -186,6 +225,60 @@ public class MainActivity extends Activity implements ActionBar.OnNavigationList
     }
 
     public static class UntaggedFragment extends Fragment {
+        public class PictureAdapter extends BaseAdapter {
+            List<String> files;
+            LayoutInflater li;
+            Context context;
+
+            public PictureAdapter(Context context, List<String> files) {
+                this.context = context;
+                this.files = files;
+                this.li = ((Activity) context).getLayoutInflater();
+            }
+
+            @Override
+            public int getCount() {
+                return files.size();
+            }
+
+            @Override
+            public Object getItem(int position) {
+                return files.get(position);
+            }
+
+            @Override
+            public long getItemId(int position) {
+                return -1;
+            }
+
+            @Override
+            public View getView(int position, View convertView, ViewGroup parent) {
+                SquareHolder sh;
+                if (convertView == null) {
+                    convertView = li.inflate(R.layout.image_square, null);
+                    sh = new SquareHolder();
+                    sh.imageView = (ImageView) convertView.findViewById(R.id.squareBg);
+                    sh.textView = (TextView) convertView.findViewById(R.id.squareName);
+                    convertView.setTag(sh);
+                } else {
+                    sh = (SquareHolder) convertView.getTag();
+                }
+
+                //Set image
+                Picasso.with(context)
+                        .load(Uri.fromFile(new File(files.get(position))))
+                        .into(sh.imageView);
+
+                sh.textView.setText(files.get(position));
+                return convertView;
+            }
+
+            public class SquareHolder {
+                public ImageView imageView;
+                public TextView textView;
+            }
+        }
+
         public static UntaggedFragment newInstance() {
             UntaggedFragment fragment = new UntaggedFragment();
             return fragment;
@@ -195,10 +288,32 @@ public class MainActivity extends Activity implements ActionBar.OnNavigationList
         }
 
         @Override
+        public void onCreate(Bundle state){
+            super.onCreate(state);
+        }
+
+        @Override
         public View onCreateView(LayoutInflater inflater, ViewGroup container,
                                  Bundle savedInstanceState) {
-            View rootView = inflater.inflate(R.layout.fragment_main, container, false);
+            ListView rootView = (ListView) inflater.inflate(R.layout.fragment_tagged, container, false);
+            //Check to see if files need to be tagged
+            File picturesDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DCIM);
+            List<String> picFiles = new ArrayList<String>();
+            addToList(picturesDir, picFiles);
+            rootView.setAdapter(new PictureAdapter(this.getActivity(), picFiles));
             return rootView;
+        }
+
+        public void addToList(File f, List<String> files) {
+            if (f.isDirectory() && f.getName().charAt(0) == '.') {
+                return; //Hidden dir; we don't care
+            } else if (f.isDirectory()) {
+                for (File file : f.listFiles()) {
+                    addToList(file, files);
+                }
+            } else {
+                files.add(f.getPath());
+            }
         }
     }
 }

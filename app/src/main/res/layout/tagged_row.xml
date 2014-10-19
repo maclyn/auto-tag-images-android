@@ -1,83 +1,68 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="horizontal"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="wrap_content"
+    android:padding="10dp"
+    android:baselineAligned="false"
+    android:background="#ffffffff"
+    android:weightSum="1">
 
-    <LinearLayout
-        android:orientation="horizontal"
-        android:layout_width="match_parent"
-        android:layout_height="120dp"
-        android:padding="10dp"
-        android:baselineAligned="false"
-        android:background="#ff000000"
-        android:weightSum="1">
+    <GridLayout
+        android:id="@+id/imageGrid"
+        android:layout_alignParentLeft="true"
+        android:layout_centerVertical="true"
+        android:layout_width="60dp"
+        android:layout_height="wrap_content"
+        android:columnCount="2"
+        android:rowCount="2">
 
-        <GridLayout
-            android:layout_width="100dp"
-            android:layout_height="match_parent"
-            android:columnCount="2"
-            android:rowCount="2">
+        <ImageView
+            android:layout_width="30dp"
+            android:layout_height="30dp"
+            android:id="@+id/rowThumb1"
+            android:layout_row="0"
+            android:layout_column="0"
+            android:layout_gravity="top|left"
+            android:src="#ffff0e00" />
 
-            <ImageView
-                android:layout_width="50dp"
-                android:layout_height="50dp"
-                android:id="@+id/rowThumb1"
-                android:layout_row="0"
-                android:layout_column="0"
-                android:layout_gravity="top|left"
-                android:src="#ffff0e00" />
+        <ImageView
+            android:layout_width="30dp"
+            android:layout_height="30dp"
+            android:id="@+id/rowThumb2"
+            android:layout_row="0"
+            android:layout_column="1"
+            android:layout_gravity="top|left"
+            android:src="#fffaff00" />
 
-            <ImageView
-                android:layout_width="50dp"
-                android:layout_height="50dp"
-                android:id="@+id/rowThumb2"
-                android:layout_row="0"
-                android:layout_column="1"
-                android:layout_gravity="top|left"
-                android:src="#fffaff00" />
+        <ImageView
+            android:layout_width="30dp"
+            android:layout_height="30dp"
+            android:id="@+id/rowThumb3"
+            android:layout_row="1"
+            android:layout_column="0"
+            android:layout_gravity="top|left"
+            android:src="#ff00ff1d" />
 
-            <ImageView
-                android:layout_width="50dp"
-                android:layout_height="50dp"
-                android:id="@+id/rowThumb3"
-                android:layout_row="1"
-                android:layout_column="0"
-                android:layout_gravity="top|left"
-                android:src="#ff00ff1d" />
+        <ImageView
+            android:layout_width="30dp"
+            android:layout_height="30dp"
+            android:id="@+id/rowThumb4"
+            android:layout_row="1"
+            android:layout_column="1"
+            android:layout_gravity="top|left"
+            android:src="#ff00f7ff" />
+    </GridLayout>
 
-            <ImageView
-                android:layout_width="50dp"
-                android:layout_height="50dp"
-                android:id="@+id/rowThumb4"
-                android:layout_row="1"
-                android:layout_column="1"
-                android:layout_gravity="top|left"
-                android:src="#ff00f7ff" />
-        </GridLayout>
-
-        <LinearLayout
-            android:orientation="horizontal"
-            android:layout_width="10dp"
-            android:layout_height="match_parent"
-            android:layout_gravity="center_vertical"></LinearLayout>
-
-        <FrameLayout
-            android:layout_width="fill_parent"
-            android:layout_height="fill_parent"
-            android:padding="25dp"
-            android:background="#ff787878">
-
-            <TextView
-                android:layout_width="fill_parent"
-                android:layout_height="fill_parent"
-                android:text="Text View"
-                android:id="@+id/tagName"
-                android:background="#ff000000"
-                android:layout_gravity="center"
-                android:gravity="center_vertical|center_horizontal"
-                android:textSize="35dp"
-                android:textColor="#ffffffff" />
-        </FrameLayout>
-    </LinearLayout>
-
-</LinearLayout>
+    <TextView
+        android:layout_toRightOf="@id/imageGrid"
+        android:layout_centerVertical="true"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:text="Tag Name"
+        android:id="@+id/tagName"
+        android:textSize="22dp"
+        android:textColor="#000000"
+        android:layout_marginLeft="10dp" />
+</RelativeLayout>
