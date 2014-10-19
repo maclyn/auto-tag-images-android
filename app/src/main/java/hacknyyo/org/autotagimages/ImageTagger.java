@@ -3,6 +3,7 @@ package hacknyyo.org.autotagimages;
 import android.util.Log;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.List;
@@ -13,6 +14,7 @@ import retrofit.RetrofitError;
 import retrofit.client.Response;
 import retrofit.http.POST;
 import retrofit.http.Path;
+import retrofit.mime.TypedFile;
 
 public class ImageTagger {
     private static final String clientId = "uXcLjdijZ1EyyV3aP320XFWTeZhJuBT0_RnqOWEn";
@@ -42,8 +44,10 @@ public class ImageTagger {
     }
 
     public void getTag(){
+        File photo = new File("/storage/emulated/0/DCIM/Camera/1009141400a.jpg");
+        TypedFile typedFile = new TypedFile("application/picture", photo);
         ClarifaiTagService service = restAdapter.create(ClarifaiTagService.class);
-        service.getTag("Bearer " + accessToken,"http://assets.worldwildlife.org/photos/2842/images/hero_small/shutterstock_12730534.jpg",
+        service.getTag("Bearer " + accessToken,typedFile,
 
                 new Callback<CloudTag>() {
                     @Override
@@ -86,7 +90,7 @@ public class ImageTagger {
 
                     @Override
                     public void failure(RetrofitError error) {
-                        Log.d("debug",error.getMessage());
+                        Log.d("failure",error.getMessage());
                     }
                 });
     }
