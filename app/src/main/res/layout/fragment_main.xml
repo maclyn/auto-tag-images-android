@@ -3,4 +3,10 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context=".MainActivity$TaggedFragment">
+
+    <GridView
+        android:id="@+id/gview"
+        android:layout_alignParentStart="true"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
 </RelativeLayout>
