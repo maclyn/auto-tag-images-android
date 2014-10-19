@@ -3,6 +3,7 @@ package hacknyyo.org.autotagimages;
 import android.app.Activity;
 import android.app.ActionBar;
 import android.app.Fragment;
+import android.content.ContentResolver;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
@@ -225,12 +226,18 @@ public class MainActivity extends Activity implements ActionBar.OnNavigationList
     }
 
     public static class UntaggedFragment extends Fragment {
+        public class ThumbHolder {
+            String filePath;
+            String thumbPath;
+            String name;
+        }
+
         public class PictureAdapter extends BaseAdapter {
-            List<String> files;
+            List<ThumbHolder> files;
             LayoutInflater li;
             Context context;
 
-            public PictureAdapter(Context context, List<String> files) {
+            public PictureAdapter(Context context, List<ThumbHolder> files) {
                 this.context = context;
                 this.files = files;
                 this.li = ((Activity) context).getLayoutInflater();
@@ -265,11 +272,13 @@ public class MainActivity extends Activity implements ActionBar.OnNavigationList
                 }
 
                 //Set image
+                File f = new File(files.get(position).thumbPath);
+                Log.d(TAG, "File: " + f.getPath());
                 Picasso.with(context)
-                        .load(Uri.fromFile(new File(files.get(position))))
+                        .load(Uri.fromFile(f))
                         .into(sh.imageView);
 
-                sh.textView.setText(files.get(position));
+                sh.textView.setText(files.get(position).name);
                 return convertView;
             }
 
@@ -296,11 +305,50 @@ public class MainActivity extends Activity implements ActionBar.OnNavigationList
         public View onCreateView(LayoutInflater inflater, ViewGroup container,
                                  Bundle savedInstanceState) {
             ListView rootView = (ListView) inflater.inflate(R.layout.fragment_tagged, container, false);
+            List<ThumbHolder> thl = new ArrayList<ThumbHolder>();
             //Check to see if files need to be tagged
-            File picturesDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DCIM);
-            List<String> picFiles = new ArrayList<String>();
-            addToList(picturesDir, picFiles);
-            rootView.setAdapter(new PictureAdapter(this.getActivity(), picFiles));
+            ContentResolver cr = this.getActivity().getContentResolver();
+            Cursor c = cr.query(MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+                    new String[]{MediaStore.Images.ImageColumns.DISPLAY_NAME,
+                                MediaStore.Images.ImageColumns._ID,
+                                MediaStore.Images.ImageColumns.DATA}, null, null,
+                                MediaStore.Images.ImageColumns.DATE_TAKEN + " desc");
+            if(c.moveToFirst()){
+                int filePathColumn = c.getColumnIndex(MediaStore.Images.ImageColumns.DATA);
+                int nameColumn = c.getColumnIndex(MediaStore.Images.ImageColumns.DISPLAY_NAME);
+                int thumbnail = c.getColumnIndex(MediaStore.Images.ImageColumns._ID); //ID in thumbnail column
+                while(!c.isAfterLast()){
+                    String path = c.getString(filePathColumn);
+                    String name = c.getString(nameColumn);
+                    int id = c.getInt(thumbnail);
+                    Log.d(TAG, "Name: " + name);
+                    Log.d(TAG, "Path: " + path);
+                    Log.d(TAG, "Id: " + id);
+                    if(thumbnail != 0){
+                        //Query for path for thumbnail
+                        Cursor c2 = cr.query(MediaStore.Images.Thumbnails.EXTERNAL_CONTENT_URI,
+                                new String[]{MediaStore.Images.Thumbnails.DATA},
+                                MediaStore.Images.Thumbnails.IMAGE_ID + "=?",
+                                new String[]{String.valueOf(id)}, null);
+                        if(c2.moveToFirst()){
+                            int dataColumn = c2.getColumnIndex(MediaStore.Images.Thumbnails.DATA);
+                            //We have a column; add it
+                            ThumbHolder th = new ThumbHolder();
+                            th.filePath = path;
+                            th.name = name;
+                            th.thumbPath = c2.getString(dataColumn);
+                            thl.add(th);
+                        }
+                        c2.close();
+                    }
+                    c.moveToNext();
+                }
+            }
+            c.close();
+
+            //We have all the thumbnails; handle it
+            PictureAdapter pa = new PictureAdapter(this.getActivity(), thl);
+            rootView.setAdapter(pa);
             return rootView;
         }
 
