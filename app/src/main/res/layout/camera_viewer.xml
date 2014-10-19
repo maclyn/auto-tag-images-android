@@ -1,18 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout
-    android:layout_width="fill_parent"
-    android:layout_height="fill_parent"
-    xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <SurfaceView
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:id="@+id/cameraView"
-        android:layout_alignParentTop="true"
-        android:layout_centerHorizontal="true"
-        android:clickable="false" />
-
-    <RelativeLayout
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+        android:id="@+id/buttonlayout"
         android:layout_width="fill_parent"
         android:layout_height="100dp"
         android:layout_alignParentBottom="true"
@@ -67,4 +57,3 @@
             android:textAlignment="center"
             android:textIsSelectable="false" />
     </RelativeLayout>
-</RelativeLayout>
