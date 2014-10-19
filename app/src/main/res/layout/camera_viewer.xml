@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <SurfaceView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:id="@+id/cameraView"
+        android:layout_alignParentTop="true"
+        android:layout_centerHorizontal="true"
+        android:clickable="false" />
+
+    <RelativeLayout
+        android:layout_width="fill_parent"
+        android:layout_height="100dp"
+        android:layout_alignParentBottom="true"
+        android:layout_centerHorizontal="true"
+        android:layout_alignBottom="@+id/cameraView"
+        android:background="#64464646">
+
+        <ImageButton
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/cameraButton"
+            android:layout_centerVertical="true"
+            android:layout_centerHorizontal="true"
+            android:src="#ffb9c7ff"
+            android:focusable="true"
+            android:alpha="100"
+            android:minHeight="60dp"
+            android:minWidth="60dp" />
+
+        <ImageButton
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/smartButton"
+            android:layout_centerVertical="true"
+            android:src="#ffc6ff97"
+            android:layout_alignParentRight="false"
+            android:layout_alignParentEnd="false"
+            android:layout_toEndOf="@+id/cameraButton"
+            android:layout_alignParentBottom="false"
+            android:layout_marginLeft="20dp"
+            android:alpha="100"
+            android:minHeight="60dp"
+            android:minWidth="60dp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/modeText"
+            android:layout_centerVertical="true"
+            android:src="@drawable/ic_launcher"
+            android:layout_alignParentRight="false"
+            android:layout_alignParentEnd="false"
+            android:layout_alignParentBottom="false"
+            android:text="Night"
+            android:textSize="25sp"
+            android:layout_alignParentLeft="false"
+            android:layout_toLeftOf="@+id/cameraButton"
+            android:layout_toStartOf="@+id/cameraButton"
+            android:layout_marginRight="20dp"
+            android:alpha="100"
+            android:background="#96ffffff"
+            android:textAlignment="center"
+            android:textIsSelectable="false" />
+    </RelativeLayout>
+</RelativeLayout>
