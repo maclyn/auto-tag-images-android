@@ -13,22 +13,25 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.List;
 import java.util.Locale;
 
 /**
  * Created by Rushil on 10/19/2014.
  */
-public class PhotoHandler implements Camera.PictureCallback {
+public class PhotoHandler implements Camera.PictureCallback, ImageTagger.BackGroundTagListener {
     public static final String TAG = "PhotoHandler";
 
     private final Context context;
     private final Camera camera;
     private boolean isNormal;
+    private CameraView cv;
 
-    public PhotoHandler(Context context, Camera c,boolean isNormal) {
+    public PhotoHandler(Context context, Camera c, boolean isNormal, CameraView cameraView) {
         this.context = context;
         this.camera = c;
         this.isNormal = isNormal;
+        this.cv = cameraView;
     }
 
     @Override
@@ -83,14 +86,21 @@ public class PhotoHandler implements Camera.PictureCallback {
             Toast.makeText(context, "Couldn't save image: " + e.getMessage(),
                     Toast.LENGTH_LONG).show();
         }
-        /*
-        File dir = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DCIM)+"/auto_tag_tmp/");
-        if(dir.isDirectory()){
-            String[] children = dir.list();
-            for (int i = 0; i < children.length; i++) {
-                new File(dir, children[i]).delete();
+        if(!isNormal) {
+            File dir = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DCIM) + "/auto_tag_tmp/");
+            if (dir.isDirectory()){
+                String child = dir.list()[0];
+                File f = new File(dir,child);
+                ImageTagger it = new ImageTagger();
+                it.getTag(context, null, f.getPath(), null, null, false);
+                f.delete();
             }
         }
-        */
+
+    }
+
+    @Override
+    public void setClasses(List<String> classes) {
+        cv.setClasses(classes);
     }
 }

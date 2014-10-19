@@ -20,6 +20,11 @@ public class CameraView extends SurfaceView implements SurfaceHolder.Callback {
     private Camera mCamera;
     private List<Camera.Size> mSupportedPreviewSizes;
     private Camera.Size mPreviewSize;
+    private List<String> classes;
+    private String[] beach;
+    private String[] fireworks;
+    private String[] party;
+    private String[] night;
 
     public CameraView(Context context, Camera camera) {
         super(context);
@@ -136,9 +141,31 @@ public class CameraView extends SurfaceView implements SurfaceHolder.Callback {
 
     public void takeSmartPicture(boolean isNormal){
         if(mCamera != null){
-            PhotoHandler ph = new PhotoHandler(getContext(),mCamera,isNormal);
+            PhotoHandler ph = new PhotoHandler(getContext(),mCamera,isNormal, this);
             mCamera.takePicture(null,null, ph);
             Log.d("debug","Picture taken");
         }
+    }
+
+    public void setClasses(List<String> classes) {
+        this.classes = classes;
+        detectCameraMode(this.classes);
+    }
+
+    public void detectCameraMode(List<String> tags) {
+        //Scene mode names : beach, fireworks, night, party, portrait, snow, sunset
+        String scene = Camera.Parameters.SCENE_MODE_AUTO;
+
+        tagLoop: for(String s : tags) {
+            if(s.toLowerCase().equals("beach")) { scene = Camera.Parameters.SCENE_MODE_BEACH; break tagLoop;}
+            else if(s.toLowerCase().equals("fireworks")) { scene = Camera.Parameters.SCENE_MODE_FIREWORKS; break tagLoop;}
+            else if(s.toLowerCase().equals("night")) { scene = Camera.Parameters.SCENE_MODE_NIGHT; break tagLoop;}
+            else if(s.toLowerCase().equals("party")) { scene = Camera.Parameters.SCENE_MODE_PARTY; break tagLoop;}
+            else if(s.toLowerCase().equals("portrait")) { scene = Camera.Parameters.SCENE_MODE_PORTRAIT; break tagLoop;}
+            else if(s.toLowerCase().equals("snow")) { scene = Camera.Parameters.SCENE_MODE_SNOW; break tagLoop;}
+            else if (s.toLowerCase().equals("sunset")) { scene = Camera.Parameters.SCENE_MODE_SUNSET; break tagLoop;}
+        }
+        //TODO Implement setSceneMode after the rest of CameraActivity is created.
+        mCamera.getParameters().setSceneMode(scene);
     }
 }

@@ -39,6 +39,7 @@ public class ImageTagger {
     private List<Double> probs;
     private ArrayList<TagInfo> tagInfos = new ArrayList<TagInfo>();
     private BackGroundTaskListener mListener;
+    private CameraActivity cameraActivity;
 
     public interface BackGroundTaskListener{
         public void setTagInfos(ArrayList<TagInfo> tags);
@@ -62,8 +63,15 @@ public class ImageTagger {
     }
 
     public void getTag(final Context ctx, final SQLiteDatabase db, final String path,
-                       final String name, final String thumbId){
-        mListener = (MainActivity)ctx;
+                       final String name, final String thumbId, final boolean addToDb){
+        try {
+            mListener = (MainActivity) ctx;
+        }catch(ClassCastException e){
+
+        }
+        if(!addToDb){
+            cameraActivity = (CameraActivity) ctx;
+        }
         File photo = new File(path);
         try {
             Bitmap photoBmp = MediaStore.Images.Media.getBitmap(ctx.getContentResolver(), Uri.fromFile(photo));
@@ -123,8 +131,11 @@ public class ImageTagger {
                             Log.d("debug",d.toString());
                         }
 
-                        DatabaseEditor.addTags(path, name, thumbId, tagInfos, db);
-                        mListener.setTagInfos(tagInfos);
+                        if(addToDb) DatabaseEditor.addTags(path, name, thumbId, tagInfos, db);
+                            mListener.setTagInfos(tagInfos);
+                        if(!addToDb){
+                            cameraActivity.setData(classes);
+                        }
                     }
 
                     @Override
