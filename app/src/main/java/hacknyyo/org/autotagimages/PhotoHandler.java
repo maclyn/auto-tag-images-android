@@ -19,19 +19,22 @@ import java.util.Locale;
 /**
  * Created by Rushil on 10/19/2014.
  */
-public class PhotoHandler implements Camera.PictureCallback, ImageTagger.BackGroundTagListener {
+public class PhotoHandler implements Camera.PictureCallback{
     public static final String TAG = "PhotoHandler";
 
     private final Context context;
     private final Camera camera;
     private boolean isNormal;
     private CameraView cv;
+    ImageTagger it = new ImageTagger();
+
 
     public PhotoHandler(Context context, Camera c, boolean isNormal, CameraView cameraView) {
         this.context = context;
         this.camera = c;
         this.isNormal = isNormal;
         this.cv = cameraView;
+        it.setAccessToken();
     }
 
     @Override
@@ -89,17 +92,16 @@ public class PhotoHandler implements Camera.PictureCallback, ImageTagger.BackGro
         if(!isNormal) {
             File dir = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DCIM) + "/auto_tag_tmp/");
             if (dir.isDirectory()){
-                String child = dir.list()[0];
-                File f = new File(dir,child);
-                ImageTagger it = new ImageTagger();
+                String[] children = dir.list();
+                File f = new File(dir,children[children.length-1]);
                 it.getTag(context, null, f.getPath(), null, null, false);
-                f.delete();
+                Log.d("debug","File should delete");
             }
         }
 
     }
 
-    @Override
+
     public void setClasses(List<String> classes) {
         cv.setClasses(classes);
     }

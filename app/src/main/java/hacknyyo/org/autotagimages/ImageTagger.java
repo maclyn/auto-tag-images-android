@@ -64,6 +64,7 @@ public class ImageTagger {
 
     public void getTag(final Context ctx, final SQLiteDatabase db, final String path,
                        final String name, final String thumbId, final boolean addToDb){
+        Log.d("debug","In the get tag");
         try {
             mListener = (MainActivity) ctx;
         }catch(ClassCastException e){
@@ -131,10 +132,16 @@ public class ImageTagger {
                             Log.d("debug",d.toString());
                         }
 
-                        if(addToDb) DatabaseEditor.addTags(path, name, thumbId, tagInfos, db);
+                        if(addToDb) {
+                            DatabaseEditor.addTags(path, name, thumbId, tagInfos, db);
+                            Log.d("debug", "add to db");
                             mListener.setTagInfos(tagInfos);
+                        }
                         if(!addToDb){
+                            Log.d("debug","dont add to db");
                             cameraActivity.setData(classes);
+                            File f = new File(path);
+                            //f.delete();
                         }
                     }
 

@@ -157,15 +157,19 @@ public class CameraView extends SurfaceView implements SurfaceHolder.Callback {
         String scene = Camera.Parameters.SCENE_MODE_AUTO;
 
         tagLoop: for(String s : tags) {
+            Log.d("debug",s);
             if(s.toLowerCase().equals("beach")) { scene = Camera.Parameters.SCENE_MODE_BEACH; break tagLoop;}
             else if(s.toLowerCase().equals("fireworks")) { scene = Camera.Parameters.SCENE_MODE_FIREWORKS; break tagLoop;}
             else if(s.toLowerCase().equals("night")) { scene = Camera.Parameters.SCENE_MODE_NIGHT; break tagLoop;}
-            else if(s.toLowerCase().equals("party")) { scene = Camera.Parameters.SCENE_MODE_PARTY; break tagLoop;}
+            else if(s.toLowerCase().equals("furniture") || s.toLowerCase().equals("room")) { scene = Camera.Parameters.SCENE_MODE_PARTY; break tagLoop;}
             else if(s.toLowerCase().equals("portrait")) { scene = Camera.Parameters.SCENE_MODE_PORTRAIT; break tagLoop;}
             else if(s.toLowerCase().equals("snow")) { scene = Camera.Parameters.SCENE_MODE_SNOW; break tagLoop;}
             else if (s.toLowerCase().equals("sunset")) { scene = Camera.Parameters.SCENE_MODE_SUNSET; break tagLoop;}
         }
+
+        Log.d("Scene",scene);
         //TODO Implement setSceneMode after the rest of CameraActivity is created.
         mCamera.getParameters().setSceneMode(scene);
+        ((CameraActivity)mContext).setModeText(scene.toString());
     }
 }

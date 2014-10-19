@@ -21,6 +21,7 @@ import android.widget.Button;
 import android.widget.FrameLayout;
 import android.widget.ImageButton;
 import android.widget.RelativeLayout;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import java.io.IOException;
@@ -131,6 +132,15 @@ public class CameraActivity extends Activity implements SurfaceHolder.Callback{
     }
     */
 
+    public void setModeText(final String text){
+        this.runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                ((TextView)CameraActivity.this.findViewById(R.id.modeText)).setText(text);
+            }
+        });
+    }
+
     private Camera.Size getOptimalPreviewSize(List<Camera.Size> sizes, int w, int h) {
         final double ASPECT_TOLERANCE = 0.1;
         double targetRatio=(double)h / w;
@@ -164,6 +174,7 @@ public class CameraActivity extends Activity implements SurfaceHolder.Callback{
     }
 
     public void setData(List<String> classes){
+        Log.d("debug","Set  data in cameraactivity");
         view.setClasses(classes);
     }
 
