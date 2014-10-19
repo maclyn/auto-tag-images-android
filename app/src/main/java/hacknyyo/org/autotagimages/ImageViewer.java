@@ -1,36 +1,50 @@
 package hacknyyo.org.autotagimages;
 
 import android.app.Activity;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.ImageView;
+
+import com.squareup.picasso.Picasso;
+
+import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 
 
 public class ImageViewer extends Activity {
+    SQLiteDatabase db;
+    ImageView img;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_image_viewer);
-    }
+        getActionBar().hide();
 
+        //Intent has file_state type
+        FileState fs = (FileState) getIntent().getSerializableExtra("filestate");
+        img = (ImageView) this.findViewById(R.id.viewImage);
+        Picasso.with(this).load(new File(fs.getPath())).into(img);
 
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.image_viewer, menu);
-        return true;
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
-        int id = item.getItemId();
-        if (id == R.id.action_settings) {
-            return true;
+        db = ((AutotagApp)this.getApplication()).getDatabase();
+        List<Integer> tagIds = fs.getIds();
+        String selection = "";
+        List<String> selectionArgs = new ArrayList<String>();
+        for(int i = 0; i < tagIds.size(); i++){
+            selection += DatabaseHelper.COLUMN_ID + "=? AND";
+            selectionArgs.add(String.valueOf(i));
         }
-        return super.onOptionsItemSelected(item);
+        selection = selection.substring(0, selection.length()-4);
+        String selectionArgsA[] = new String[selectionArgs.size()];
+        Cursor tags =
+                db.query(DatabaseHelper.TABLE_TAGS, null, selection, selectionArgs.toArray(selectionArgsA), null, null, null);
+        if(tags.moveToFirst()){
+
+        }
+        tags.close();
     }
 }
