@@ -1,8 +1,12 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     tools:context=".MainActivity" >
+    <item android:id="@+id/action_test"
+        android:title="Test"
+        android:orderInCategory="1"
+        android:showAsAction="never" />
     <item android:id="@+id/action_tag_all"
         android:title="Tag All"
-        android:orderInCategory="100"
+        android:orderInCategory="2"
         android:showAsAction="never" />
 </menu>
