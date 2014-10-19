@@ -20,6 +20,7 @@ android {
 }
 
 dependencies {
+    compile 'com.squareup.picasso:picasso:2.3.4'
     compile 'com.google.code.gson:gson:2.3'
     compile 'com.squareup.retrofit:retrofit:1.7.0'
     compile fileTree(dir: 'libs', include: ['*.jar'])

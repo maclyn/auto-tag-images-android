@@ -4,10 +4,12 @@ import android.app.Activity;
 import android.app.ActionBar;
 import android.app.Fragment;
 import android.content.Context;
+import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
+import android.provider.ContactsContract;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -20,43 +22,13 @@ import android.widget.ListAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
 
+import java.util.ArrayList;
 import java.util.List;
 
 
 public class MainActivity extends Activity implements ActionBar.OnNavigationListener {
-    public class TagAdapter extends BaseAdapter {
-        List<Tag> tags;
-        LayoutInflater li;
-        Context context;
-
-        public TagAdapter(Context context, List<Tag> tags){
-            this.context = context;
-            this.tags = tags;
-            this.li = ((Activity)context).getLayoutInflater();
-        }
-
-        @Override
-        public int getCount() {
-            return tags.size();
-        }
-
-        @Override
-        public Object getItem(int position) {
-            return tags.get(position);
-        }
-
-        @Override
-        public long getItemId(int position) {
-            return 0;
-        }
-
-        @Override
-        public View getView(int position, View convertView, ViewGroup parent) {
-            return new View(context);
-        }
-    }
-
     private static final String STATE_SELECTED_NAVIGATION_ITEM = "selected_navigation_item";
+    ImageTagger t;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -77,6 +49,7 @@ public class MainActivity extends Activity implements ActionBar.OnNavigationList
                                 "Untagged"
                         }),
                 this);
+        t = new ImageTagger();
     }
 
     @Override
@@ -106,8 +79,9 @@ public class MainActivity extends Activity implements ActionBar.OnNavigationList
         if (id == R.id.action_tag_all) {
             return true;
         } else if (id == R.id.action_test) {
-            ImageTagger it = new ImageTagger();
-            it.setAccessToken();
+            t.setAccessToken();
+        } else if (id == R.id.action_test_2) {
+            t.getTag();
         }
         return super.onOptionsItemSelected(item);
     }
@@ -127,6 +101,41 @@ public class MainActivity extends Activity implements ActionBar.OnNavigationList
     }
 
     public static class TaggedFragment extends Fragment {
+        public class TagAdapter extends BaseAdapter {
+            List<Tag> tags;
+            LayoutInflater li;
+            Context context;
+
+            public TagAdapter(Context context, List<Tag> tags){
+                this.context = context;
+                this.tags = tags;
+                this.li = ((Activity)context).getLayoutInflater();
+            }
+
+            @Override
+            public int getCount() {
+                return tags.size();
+            }
+
+            @Override
+            public Object getItem(int position) {
+                return tags.get(position);
+            }
+
+            @Override
+            public long getItemId(int position) {
+                return -1;
+            }
+
+            @Override
+            public View getView(int position, View convertView, ViewGroup parent) {
+
+                return new View(context);
+            }
+        }
+
+        ListView view;
+
         public static TaggedFragment newInstance() {
             TaggedFragment fragment = new TaggedFragment();
             return fragment;
@@ -136,17 +145,42 @@ public class MainActivity extends Activity implements ActionBar.OnNavigationList
         }
 
         @Override
+        public void onCreate(Bundle savedState){
+            super.onCreate(savedState);
+        }
+
+        @Override
         public View onCreateView(LayoutInflater inflater, ViewGroup container,
                 Bundle savedInstanceState) {
             ListView rootView = (ListView) inflater.inflate(R.layout.fragment_tagged, container, false);
+            view = rootView;
             SQLiteDatabase database = ((AutotagApp) this.getActivity().getApplication()).getDatabase();
-            new AsyncTask<SQLiteDatabase, Void, Void>(){
+            new AsyncTask<Object, Void, TagAdapter>() {
                 @Override
-                protected Void doInBackground(SQLiteDatabase... params) {
-                    return null;
+                protected TagAdapter doInBackground(Object... params) {
+                    SQLiteDatabase d = (SQLiteDatabase) params[0];
+                    List<Tag> tags = new ArrayList<Tag>();
+                    Cursor c = d.query(DatabaseHelper.TABLE_TAGS, null, null, null, null, null, DatabaseHelper.COLUMN_TAG_NAME + " desc");
+                    if(c.moveToFirst()){
+                        int nameColumn = c.getColumnIndex(DatabaseHelper.COLUMN_TAG_NAME);
+                        int fileColumn = c.getColumnIndex(DatabaseHelper.COLUMN_FILE_PATHS);
+                        while(!c.isAfterLast()){
+                            //Convert | delimited file names
+                            String files[] = c.getString(fileColumn).split("\\|");
+                            List<String> fileList = new ArrayList<String>();
+                            fileList.addAll(fileList);
+                            tags.add(new Tag(fileList, c.getString(nameColumn)));
+                            c.moveToNext();
+                        }
+                    }
+                    return new TagAdapter(((Fragment)params[1]).getActivity(), tags);
                 }
-            }.execute(database);
 
+                @Override
+                protected void onPostExecute(TagAdapter adapter) {
+                    if(view != null) view.setAdapter(adapter);
+                }
+            }.execute(database, this);
             return rootView;
         }
     }
