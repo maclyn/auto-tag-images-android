@@ -98,59 +98,35 @@ public class ImageTagger {
 
             ClarifaiTagService service = restAdapter.create(ClarifaiTagService.class);
             service.getTag("Bearer " + accessToken, typedFile,
-                    new Callback<CloudTag>() {
-                        @Override
-                        public void success(CloudTag cloudTag, Response response) {
-                            Log.d("debug",cloudTag.getStatus_msg());
-                            Log.d("debug",cloudTag.getStatus_code());
-                            List<Result> results = cloudTag.getResults();
-                            InnerResult innerResult = results.get(0).result;
-                            InnerInnerResult innerInnerResult = innerResult.tag;
-                            classes = innerInnerResult.classes;
-                            probs = innerInnerResult.probs;
-                            for(int i = 0; i < classes.size(); i ++){
-                                TagInfo temp = new TagInfo();
-                                temp.setClasses(classes.get(i));
-                                temp.setProbs(probs.get(i));
-                                tagInfos.add(temp);
-                            }
-                            for(String s : innerInnerResult.classes){
-                                Log.d("debug",s);
-                            }
-                            for(Double d : innerInnerResult.probs){
-                                Log.d("debug",d.toString());
-                            }
-                            mListener.setTagInfos(tagInfos);
-                        /*
-                        Log.d("debug","it does get here");
-                        try {
-                            BufferedReader reader = new BufferedReader(new InputStreamReader(response.getBody().in()));
-                            StringBuilder sb = new StringBuilder();
-                            String line = "";
-                            try{
-                                while((line = reader.readLine())!= null){
-                                    sb.append(line);
-                                }
-                            }catch (IOException e){
-
-                            }
-                            Log.d("debug",sb.toString());
-                        }catch(IOException e){
-
+                new Callback<CloudTag>() {
+                    @Override
+                    public void success(CloudTag cloudTag, Response response) {
+                        tagInfos = new ArrayList<TagInfo>();
+                        List<Result> results = cloudTag.getResults();
+                        InnerResult innerResult = results.get(0).result;
+                        InnerInnerResult innerInnerResult = innerResult.tag;
+                        classes = innerInnerResult.classes;
+                        probs = innerInnerResult.probs;
+                        for(int i = 0; i < classes.size(); i ++){
+                            TagInfo temp = new TagInfo();
+                            temp.setClasses(classes.get(i));
+                            temp.setProbs(probs.get(i));
+                            tagInfos.add(temp);
                         }
-
-                        classes = cloudTag.getClasses();
-                        probs = cloudTag.getProbs();
-                        Log.d("debug",classes.get(0));
-                        Log.d("debug",probs.get(0).toString());
-                        */
+                        for(String s : innerInnerResult.classes){
+                            Log.d("debug",s);
                         }
-
-                        @Override
-                        public void failure(RetrofitError error) {
-                            Log.d("failure",error.getMessage());
+                        for(Double d : innerInnerResult.probs){
+                            Log.d("debug",d.toString());
                         }
-                    });
+                        mListener.setTagInfos(tagInfos);
+                    }
+
+                    @Override
+                    public void failure(RetrofitError error) {
+                        Log.d("failure",error.getMessage());
+                    }
+                });
         } catch (Exception e){
         }
     }

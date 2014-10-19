@@ -3,15 +3,15 @@ package hacknyyo.org.autotagimages;
 import java.util.List;
 
 public class Tag {
-    private List<String> files;
+    private List<ImageLink> files;
     private String name;
 
-    public Tag(List<String> files, String name){
+    public Tag(List<ImageLink> files, String name){
         this.files = files;
         this.name = name;
     }
 
-    public List<String> getFiles() {
+    public List<ImageLink> getFiles() {
         return files;
     }
 

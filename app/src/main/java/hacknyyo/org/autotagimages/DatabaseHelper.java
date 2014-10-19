@@ -17,9 +17,9 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
     //FileState table
     public static final String TABLE_FILE_STATE = "file_state";
-    public static final String COLUMN_FILE_NAME = "file_name";
-    public static final String COLUMN_TAGGED = "tagged";
+    public static final String COLUMN_FILE_PATH = "file_path";
     public static final String COLUMN_TAG_IDS = "tag_ids";
+    public static final String COLUMN_FILE_NAME = "file_name";
 
     //Tag table
     public static final String TABLE_TAGS = "tags";
@@ -32,7 +32,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             "(" + COLUMN_ID + " integer primary key autoincrement, "
             + COLUMN_FILE_NAME + " text not null, "
             + COLUMN_TAG_IDS + " text not null, "
-            + COLUMN_FILE_PATHS + " integer not null" + ");";
+            + COLUMN_FILE_PATH + " text not null" + ");";
     private static final String TAGS_TABLE_CREATE = "create table "
             + TABLE_TAGS +
             "(" + COLUMN_ID + " integer primary key autoincrement, "

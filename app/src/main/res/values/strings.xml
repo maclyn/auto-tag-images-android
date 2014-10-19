@@ -9,5 +9,6 @@
     <string name="action_settings">Settings</string>
     <string name="title_activity_camera">Autotagging Camera</string>
     <string name="title_activity_image_viewer">Image Viewer</string>
+    <string name="title_activity_choose_an_image">From Tag</string>
 
 </resources>

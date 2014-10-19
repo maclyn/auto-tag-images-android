@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <item name="shade1" type="color">#60000000</item>
+    <item name="shade2" type="color">#a0000000</item>
+    <item name="shade3" type="color">#a0000000</item>
+    <item name="shade4" type="color">#c0000000</item>
+</resources>

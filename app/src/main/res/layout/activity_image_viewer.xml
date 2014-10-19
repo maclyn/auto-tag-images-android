@@ -7,7 +7,9 @@
     <ImageView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:id="@+id/viewImage" />
+        android:id="@+id/viewImage"
+        android:background="@android:color/black"
+        android:cropToPadding="false" />
 
     <TextView
         android:id="@+id/viewName"
@@ -17,7 +19,8 @@
         android:layout_height="wrap_content"
         android:singleLine="true"
         android:layout_margin="8dp"
-        android:textSize="20dp" />
+        android:textSize="20dp"
+        android:textColor="@android:color/white" />
 
     <RelativeLayout
         android:layout_margin="0dp"

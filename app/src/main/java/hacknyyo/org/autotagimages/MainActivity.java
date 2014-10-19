@@ -2,12 +2,16 @@ package hacknyyo.org.autotagimages;
 
 import android.app.Activity;
 import android.app.ActionBar;
+import android.app.Dialog;
 import android.app.Fragment;
+import android.app.ProgressDialog;
 import android.content.ContentResolver;
 import android.content.Context;
+import android.content.Intent;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.graphics.BitmapFactory;
+import android.graphics.drawable.ColorDrawable;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Build;
@@ -29,6 +33,7 @@ import android.widget.ListAdapter;
 import android.widget.ListView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.squareup.picasso.Picasso;
 
@@ -41,7 +46,11 @@ public class MainActivity extends Activity implements ActionBar.OnNavigationList
     public static final String TAG = "MainActivity";
     private static final String STATE_SELECTED_NAVIGATION_ITEM = "selected_navigation_item";
     private ArrayList<TagInfo> tagInfos;
+    Dialog d;
     public ImageTagger t;
+    String latestThumbId = "";
+    String latestPath = "";
+    String latestName = "";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -112,6 +121,13 @@ public class MainActivity extends Activity implements ActionBar.OnNavigationList
     @Override
     public void setTagInfos(ArrayList<TagInfo> tags) {
         tagInfos = tags;
+        if(d != null){
+            d.dismiss();
+        }
+
+        //Add it to the database
+        DatabaseEditor.addTags(latestPath, latestName, latestThumbId, tags, ((AutotagApp)this.getApplication()).getDatabase());
+        Toast.makeText(this, "Tagged.", Toast.LENGTH_SHORT).show();
     }
 
     public static class TaggedFragment extends Fragment {
@@ -142,17 +158,17 @@ public class MainActivity extends Activity implements ActionBar.OnNavigationList
             }
 
             @Override
-            public View getView(int position, View convertView, ViewGroup parent) {
+            public View getView(final int position, View convertView, ViewGroup parent) {
                 RelativeLayout tagRow = (RelativeLayout) convertView;
                 if(convertView == null){
                     tagRow = (RelativeLayout) li.inflate(R.layout.tagged_row, null);
                 }
 
-                //Set images
                 //Get images from within tags
-                List<String> files = tags.get(position).getFiles();
-                for(int i = 0; i < 3 && i < tags.size(); i++){
-                    ImageView iv;
+                List<ImageLink> files = tags.get(position).getFiles();
+                int i;
+                for(i = 0; i < 3 && i < files.size(); i++){
+                    ImageView iv = null;
                     switch(i){
                         case 0:
                             iv = (ImageView) tagRow.findViewById(R.id.rowThumb1);
@@ -163,15 +179,48 @@ public class MainActivity extends Activity implements ActionBar.OnNavigationList
                         case 2:
                             iv = (ImageView) tagRow.findViewById(R.id.rowThumb3);
                             break;
-                        case 3:
+                        default:
                             iv = (ImageView) tagRow.findViewById(R.id.rowThumb4);
                             break;
                     }
-                    Picasso.with(context).load("file:" + files.get(i));
+                    Picasso.with(context).load("file:" + files.get(i).getThumbnailId()).into(iv);
+                }
+                //Whatever's left, unload the image
+                if(i < 3){
+                    for(int j = i; j < 3; j++){
+                        ImageView iv = null;
+                        switch(i){
+                            case 0:
+                                iv = (ImageView) tagRow.findViewById(R.id.rowThumb1);
+                                iv.setImageDrawable(new ColorDrawable(R.color.shade1));
+                                break;
+                            case 1:
+                                iv = (ImageView) tagRow.findViewById(R.id.rowThumb2);
+                                iv.setImageDrawable(new ColorDrawable(R.color.shade2));
+                                break;
+                            case 2:
+                                iv = (ImageView) tagRow.findViewById(R.id.rowThumb3);
+                                iv.setImageDrawable(new ColorDrawable(R.color.shade3));
+                                break;
+                            default:
+                                iv = (ImageView) tagRow.findViewById(R.id.rowThumb4);
+                                iv.setImageDrawable(new ColorDrawable(R.color.shade4));
+                                break;
+                        }
+                    }
                 }
 
                 //Set text
                 ((TextView)tagRow.findViewById(R.id.tagName)).setText(tags.get(position).getName());
+                tagRow.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        Intent i = new Intent(v.getContext(), ChooseAnImage.class);
+                        i.putExtra("tag_name", tags.get(position).getName());
+                        i.putExtra("tag_files", DatabaseEditor.toImageLink(tags.get(position).getFiles()));
+                        v.getContext().startActivity(i);
+                    }
+                });
                 return tagRow;
             }
         }
@@ -202,16 +251,13 @@ public class MainActivity extends Activity implements ActionBar.OnNavigationList
                 protected TagAdapter doInBackground(Object... params) {
                     SQLiteDatabase d = (SQLiteDatabase) params[0];
                     List<Tag> tags = new ArrayList<Tag>();
-                    Cursor c = d.query(DatabaseHelper.TABLE_TAGS, null, null, null, null, null, DatabaseHelper.COLUMN_TAG_NAME + " desc");
+                    Cursor c = d.query(DatabaseHelper.TABLE_TAGS, null, null, null, null, null, DatabaseHelper.COLUMN_TAG_NAME + " asc");
                     if(c.moveToFirst()){
                         int nameColumn = c.getColumnIndex(DatabaseHelper.COLUMN_TAG_NAME);
                         int fileColumn = c.getColumnIndex(DatabaseHelper.COLUMN_FILE_PATHS);
                         while(!c.isAfterLast()){
-                            //Convert | delimited file names
-                            String files[] = c.getString(fileColumn).split("\\|");
-                            List<String> fileList = new ArrayList<String>();
-                            fileList.addAll(fileList);
-                            tags.add(new Tag(fileList, c.getString(nameColumn)));
+                            tags.add(new Tag(DatabaseEditor.fromImageLink(c.getString(fileColumn)),
+                                    c.getString(nameColumn)));
                             c.moveToNext();
                         }
                     }
@@ -227,11 +273,16 @@ public class MainActivity extends Activity implements ActionBar.OnNavigationList
         }
     }
 
+    public void showDialog(){
+        d = ProgressDialog.show(this, "Tagging", "Getting tags...");
+    }
+
     public static class UntaggedFragment extends Fragment {
         public class ThumbHolder {
             String filePath;
             String thumbPath;
             String name;
+            Boolean hasFired;
         }
 
         public class PictureAdapter extends BaseAdapter {
@@ -277,18 +328,28 @@ public class MainActivity extends Activity implements ActionBar.OnNavigationList
 
                 //Set image
                 File f = new File(files.get(position).thumbPath);
-                Log.d(TAG, "File: " + f.getPath());
                 Picasso.with(context)
                         .load(Uri.fromFile(f))
                         .into(sh.imageView);
 
+                final String thumbId = files.get(position).thumbPath;
+                final String path = files.get(position).filePath;
+                final String name = files.get(position).name;
                 sh.textView.setText(files.get(position).name);
-
                 convertView.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
                         //Upload the file
+                        if(files.get(position).hasFired){
+                            Toast.makeText(context, "You've already tagged this.", Toast.LENGTH_SHORT).show();
+                            return;
+                        }
+                        files.get(position).hasFired = true;
                         String toUploadPath = files.get(position).filePath;
+                        ((MainActivity)context).showDialog();
+                        ((MainActivity)context).latestPath = path;
+                        ((MainActivity)context).latestName = name;
+                        ((MainActivity)context).latestThumbId = thumbId;
                         t.getTag(context, toUploadPath);
                     }
                 });
@@ -334,9 +395,9 @@ public class MainActivity extends Activity implements ActionBar.OnNavigationList
                     String path = c.getString(filePathColumn);
                     String name = c.getString(nameColumn);
                     int id = c.getInt(thumbnail);
-                    Log.d(TAG, "Name: " + name);
-                    Log.d(TAG, "Path: " + path);
-                    Log.d(TAG, "Id: " + id);
+                    //Log.d(TAG, "Name: " + name);
+                    //Log.d(TAG, "Path: " + path);
+                    //Log.d(TAG, "Id: " + id);
                     if(thumbnail != 0){
                         //Query for path for thumbnail
                         Cursor c2 = cr.query(MediaStore.Images.Thumbnails.EXTERNAL_CONTENT_URI,
@@ -350,6 +411,7 @@ public class MainActivity extends Activity implements ActionBar.OnNavigationList
                             th.filePath = path;
                             th.name = name;
                             th.thumbPath = c2.getString(dataColumn);
+                            th.hasFired = false;
                             thl.add(th);
                         }
                         c2.close();
@@ -359,23 +421,30 @@ public class MainActivity extends Activity implements ActionBar.OnNavigationList
             }
             c.close();
 
+            //Compare this with file_state table
+            List<String> alreadyTagged = new ArrayList<String>();
+            Cursor cs = ((AutotagApp)this.getActivity().getApplication()).getDatabase().query(
+                    DatabaseHelper.TABLE_FILE_STATE, null, null, null, null, null, null, null);
+            if(cs.moveToFirst()){
+                int nameField = cs.getColumnIndex(DatabaseHelper.COLUMN_FILE_PATH);
+                while(!cs.isAfterLast()){
+                    alreadyTagged.add(cs.getString(nameField));
+                    cs.moveToNext();
+                }
+            }
+
+            List<ThumbHolder> realHolders = new ArrayList<ThumbHolder>();
+            for(ThumbHolder thumbHolder : thl){
+                if(!alreadyTagged.contains(thumbHolder.filePath)){
+                    realHolders.add(thumbHolder);
+                }
+            }
+
             //We have all the thumbnails; handle it
-            PictureAdapter pa = new PictureAdapter(this.getActivity(), thl,
+            PictureAdapter pa = new PictureAdapter(this.getActivity(), realHolders,
                     ((MainActivity)this.getActivity()).t);
             rootView.setAdapter(pa);
             return rootView;
-        }
-
-        public void addToList(File f, List<String> files) {
-            if (f.isDirectory() && f.getName().charAt(0) == '.') {
-                return; //Hidden dir; we don't care
-            } else if (f.isDirectory()) {
-                for (File file : f.listFiles()) {
-                    addToList(file, files);
-                }
-            } else {
-                files.add(f.getPath());
-            }
         }
     }
 }
