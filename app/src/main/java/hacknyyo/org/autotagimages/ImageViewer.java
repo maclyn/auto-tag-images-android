@@ -42,35 +42,7 @@ public class ImageViewer extends Activity {
         Picasso.with(this).load(new File(il.getPath())).into(img);
         ((TextView)this.findViewById(R.id.viewName)).setText(il.getName());
 
-        final RelativeLayout viewTagsDrawer = (RelativeLayout) this.findViewById(R.id.viewTagsDrawer);
         LinearLayout viewTagsContainer = (LinearLayout) this.findViewById(R.id.viewTagsContainer);
-        ImageView drawerHandle = (ImageView) this.findViewById(R.id.drawerHandle);
-        drawerHandle.setOnTouchListener(new View.OnTouchListener() {
-            @Override
-            public boolean onTouch(View v, MotionEvent event) {
-                Log.d(TAG, "Event caught @ " + event.getRawX() + " " + event.getRawY());
-                if(event.getAction() == MotionEvent.ACTION_UP){
-                    Log.d(TAG, "Action up caught!");
-                    //See what we should do
-                    if(event.getRawY() - startY > 50){ //Flick down
-                        viewTagsDrawer.setTranslationY(500);
-                    } else if (event.getRawY() - startY < -50){ //Flick up
-                        viewTagsDrawer.setTranslationY(50);
-                    }
-                } else if (event.getAction() == MotionEvent.ACTION_MOVE){
-                    Log.d(TAG, "Action move caught!");
-                    viewTagsDrawer.setTranslationY(event.getRawY());
-                } else if (event.getAction() == MotionEvent.ACTION_DOWN){
-                    Log.d(TAG, "Action down caught!");
-                    startY = event.getY();
-                } else {
-                    Log.d(TAG, "Unknown event caught!");
-                }
-
-                return true;
-            }
-        });
-
         //Set tags in the other layout by querying by tag id
         db = ((AutotagApp)this.getApplication()).getDatabase();
         Cursor c = db.query(DatabaseHelper.TABLE_FILE_STATE, null, DatabaseHelper.COLUMN_FILE_PATH + "=?",
@@ -85,6 +57,9 @@ public class ImageViewer extends Activity {
                 int tagNameColumn = c2.getColumnIndex(DatabaseHelper.COLUMN_TAG_NAME);
                 while(!c2.isAfterLast()){
                     TextView t = new TextView(this);
+                    t.setTextSize(24f);
+                    t.setTextColor(getResources().getColor(android.R.color.white));
+                    t.setBackgroundColor(getResources().getColor(R.color.shade2));
                     t.setText(c2.getString(tagNameColumn));
                     viewTagsContainer.addView(t);
                     c2.moveToNext();

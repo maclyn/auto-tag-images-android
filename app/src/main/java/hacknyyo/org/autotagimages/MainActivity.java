@@ -52,6 +52,9 @@ public class MainActivity extends Activity implements ActionBar.OnNavigationList
     Dialog d;
     public ImageTagger t;
 
+    List<ThumbHolder> holderList;
+    int holdersToHandle = 0;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -101,9 +104,14 @@ public class MainActivity extends Activity implements ActionBar.OnNavigationList
         if (id == R.id.action_tag_all) {
             //Tag all the images remaining
             List<ThumbHolder> holders = getHolders(this, this.getContentResolver());
-            for(ThumbHolder h : holders) {
+            holderList = holders;
+            holdersToHandle = holders.size();
+            if(holders.size() > 0){
+                ThumbHolder h = holders.remove(0);
+                holdersToHandle--;
                 t.getTag(this, ((AutotagApp) this.getApplication()).getDatabase(), h.filePath,
                         h.name, h.thumbPath);
+                showDialog();
             }
             return true;
         }
@@ -126,13 +134,18 @@ public class MainActivity extends Activity implements ActionBar.OnNavigationList
 
     @Override
     public void setTagInfos(ArrayList<TagInfo> tags) {
-        tagInfos = tags;
-        if(d != null){
-            d.dismiss();
+        if(holdersToHandle > 0){
+            ThumbHolder h = holderList.remove(0);
+            holdersToHandle--;
+            t.getTag(this, ((AutotagApp) this.getApplication()).getDatabase(), h.filePath,
+                    h.name, h.thumbPath);
+        } else {
+            if (d != null) {
+                d.dismiss();
+            }
+            //Added it to the database
+            Toast.makeText(this, "Tagged.", Toast.LENGTH_SHORT).show();
         }
-
-        //Add it to the database
-        Toast.makeText(this, "Tagged.", Toast.LENGTH_SHORT).show();
     }
 
     public static class TaggedFragment extends Fragment {

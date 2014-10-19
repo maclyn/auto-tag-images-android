@@ -20,36 +20,16 @@
         android:singleLine="true"
         android:layout_margin="8dp"
         android:textSize="20dp"
-        android:textColor="@android:color/white" />
+        android:textColor="@android:color/white"
+        android:visibility="gone" />
 
-    <RelativeLayout
-        android:layout_margin="0dp"
+    <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:background="#9a000000"
-        android:id="@+id/viewTagsDrawer">
-        <ImageView
-            android:layout_alignParentTop="true"
-            android:layout_alignParentRight="true"
-            android:src="@drawable/ic_action_up"
-            android:layout_width="48dp"
-            android:layout_height="48dp"
-            android:layout_marginTop="10dp"
-            android:layout_marginRight="10dp"
-            android:id="@+id/drawerHandle" />
-        <ScrollView
-            android:layout_width="match_parent"
-            android:layout_marginRight="50dp"
-            android:layout_height="match_parent"
-            android:layout_marginLeft="10dp"
-            android:layout_marginTop="10dp"
-            android:layout_marginBottom="10dp">
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:id="@+id/viewTagsContainer"
-                android:orientation="vertical"
-                android:focusableInTouchMode="true" />
-        </ScrollView>
-    </RelativeLayout>
+        android:layout_height="wrap_content"
+        android:id="@+id/viewTagsContainer"
+        android:orientation="vertical"
+        android:focusableInTouchMode="true"
+        android:layout_alignParentBottom="true"
+        android:layout_margin="10dp" />
+
 </RelativeLayout>
