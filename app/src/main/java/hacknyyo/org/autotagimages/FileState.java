@@ -5,10 +5,7 @@ import android.os.Parcelable;
 
 import java.util.List;
 
-/**
- * Created by Maclyn on 10/19/2014.
- */
-public class FileState implements Parcelable {
+public class FileState {
     private String path;
     private List<Integer> ids;
 
@@ -23,15 +20,5 @@ public class FileState implements Parcelable {
 
     public List<Integer> getIds() {
         return ids;
-    }
-
-    @Override
-    public int describeContents() {
-        return 0;
-    }
-
-    @Override
-    public void writeToParcel(Parcel dest, int flags) {
-
     }
 }
