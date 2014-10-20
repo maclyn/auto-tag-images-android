@@ -1,6 +1,5 @@
 package hacknyyo.org.autotagimages;
 
-import android.app.Activity;
 import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Bitmap;
@@ -10,11 +9,8 @@ import android.provider.MediaStore;
 import android.util.Log;
 import android.webkit.MimeTypeMap;
 
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -22,15 +18,11 @@ import retrofit.Callback;
 import retrofit.RestAdapter;
 import retrofit.RetrofitError;
 import retrofit.client.Response;
-import retrofit.http.POST;
-import retrofit.http.Path;
 import retrofit.mime.TypedFile;
 
 public class ImageTagger {
     public static final String TAG = "ImageTagger";
 
-    private static final String clientId = "uXcLjdijZ1EyyV3aP320XFWTeZhJuBT0_RnqOWEn";
-    private static final String clientSecret = "jEnJLQ2tPHxrBODPGNYr-EssEO993wo-QKGjUgcw";
     private RestAdapter restAdapter = new RestAdapter.Builder()
             .setEndpoint("https://api.clarifai.com/v1")
             .build();
@@ -47,7 +39,7 @@ public class ImageTagger {
 
     public void setAccessToken(){
         ClarifaiTokenService service = restAdapter.create(ClarifaiTokenService.class);
-        service.getToken("client_credentials",clientId,clientSecret,new Callback<Token>() {
+        service.getToken("client_credentials", Constants.clientId, Constants.clientSecret,new Callback<Token>() {
             @Override
             public void success(Token token, Response response) {
                 accessToken = token.getAccess_token();
@@ -138,7 +130,7 @@ public class ImageTagger {
                             mListener.setTagInfos(tagInfos);
                         }
                         if(!addToDb){
-                            Log.d("debug","dont add to db");
+                            Log.d("debug", "dont add to db");
                             cameraActivity.setData(classes);
                             File f = new File(path);
                             //f.delete();

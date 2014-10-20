@@ -420,6 +420,7 @@ public class MainActivity extends Activity implements ActionBar.OnNavigationList
 
             List<ThumbHolder> realHolders = getHolders(getActivity(),
                     getActivity().getContentResolver());
+
             //We have all the thumbnails; handle it
             PictureAdapter pa = new PictureAdapter(this.getActivity(), realHolders,
                     ((MainActivity)this.getActivity()).t);
