@@ -68,6 +68,7 @@ public class ChooseAnImage extends Activity {
             File f = new File(files.get(position).getThumbnailId());
             Picasso.with(context)
                     .load(Uri.fromFile(f))
+                    .fit().centerCrop()
                     .into(sh.imageView);
 
             final String thumbId = files.get(position).getThumbnailId();

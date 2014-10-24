@@ -133,7 +133,7 @@ public class ImageTagger {
                             Log.d("debug", "dont add to db");
                             cameraActivity.setData(classes);
                             File f = new File(path);
-                            //f.delete();
+                            f.delete();
                         }
                     }
 

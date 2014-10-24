@@ -154,7 +154,7 @@ public class MainActivity extends Activity implements ActionBar.OnNavigationList
     }
 
     @Override
-    public void setTagInfos(ArrayList<TagInfo> tags) {
+    public void setTagInfos(ArrayList<TagInfo> tags) { 
         if(holdersToHandle > 0){
             ThumbHolder h = holderList.remove(0);
             holdersToHandle--;
