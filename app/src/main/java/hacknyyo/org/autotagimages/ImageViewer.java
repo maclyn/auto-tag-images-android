@@ -39,7 +39,11 @@ public class ImageViewer extends Activity {
         //Intent has ImageLink type
         il = DatabaseEditor.fromImageLink(this.getIntent().getStringExtra("il")).get(0);
         img = (ImageView) this.findViewById(R.id.viewImage);
-        Picasso.with(this).load(new File(il.getPath())).into(img);
+        Picasso.with(this)
+                .load(new File(il.getPath()))
+                .fit()
+                .centerInside()
+                .into(img);
         ((TextView)this.findViewById(R.id.viewName)).setText(il.getName());
 
         LinearLayout viewTagsContainer = (LinearLayout) this.findViewById(R.id.viewTagsContainer);
