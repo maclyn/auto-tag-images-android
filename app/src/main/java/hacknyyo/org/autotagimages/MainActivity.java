@@ -148,14 +148,16 @@ public class MainActivity extends Activity implements ActionBar.OnNavigationList
                     thumbPaths[i] = null;
                 }
             }
-            showDialog();
-            imageTagger.getTag(this,
-                    ((AutotagApp) this.getApplication()).getDatabase(),
-                    filePaths,
-                    names,
-                    thumbPaths,
-                    num,
-                    true);
+            if(holdersToHandle > 0) {
+                showDialog();
+                imageTagger.getTag(this,
+                        ((AutotagApp) this.getApplication()).getDatabase(),
+                        filePaths,
+                        names,
+                        thumbPaths,
+                        num,
+                        true);
+            }
             /*
             if(holderList.size() > 0){
                 ThumbHolder h = holderList.remove(0);

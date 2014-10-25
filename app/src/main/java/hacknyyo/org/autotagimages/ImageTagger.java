@@ -23,7 +23,7 @@ import retrofit.mime.TypedFile;
 
 public class ImageTagger {
     public static final String TAG = "ImageTagger";
-    public static final int NUM_FILES_PASSED = 3;
+    public static final int NUM_FILES_PASSED = 7;
     private RestAdapter restAdapter = new RestAdapter.Builder()
             .setEndpoint("https://api.clarifai.com/v1")
             .build();
@@ -138,10 +138,10 @@ public class ImageTagger {
                     typedFiles.get(0),
                     typedFiles.get(1),
                     typedFiles.get(2),
-                    //typedFiles.get(3),
-                    //typedFiles.get(4),
-                    //typedFiles.get(5),
-                    //typedFiles.get(6),
+                    typedFiles.get(3),
+                    typedFiles.get(4),
+                    typedFiles.get(5),
+                    typedFiles.get(6),
                     //typedFiles.get(7),
                     //typedFiles.get(8),
                 new Callback<CloudTag>() {
