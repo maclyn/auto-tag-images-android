@@ -21,11 +21,11 @@ public interface ClarifaiTagService {
                        @Part("encoded_image")TypedFile photo1,
                        @Part("encoded_image")TypedFile photo2,
                        @Part("encoded_image")TypedFile photo3,
-                       @Part("encoded_image")TypedFile photo4,
-                       @Part("encoded_image")TypedFile photo5,
-                       @Part("encoded_image")TypedFile photo6,
-                       @Part("encoded_image")TypedFile photo7,
-                       @Part("encoded_image")TypedFile photo8,
-                       @Part("encoded_image")TypedFile photo9,
+                       //@Part("encoded_image")TypedFile photo4,
+                       //@Part("encoded_image")TypedFile photo5,
+                       //@Part("encoded_image")TypedFile photo6,
+                       //@Part("encoded_image")TypedFile photo7,
+                       //@Part("encoded_image")TypedFile photo8,
+                       //@Part("encoded_image")TypedFile photo9,
                        Callback<CloudTag> response);
 }

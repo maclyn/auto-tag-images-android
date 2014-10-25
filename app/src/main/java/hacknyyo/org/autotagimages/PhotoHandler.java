@@ -96,7 +96,11 @@ public class PhotoHandler implements Camera.PictureCallback{
             if (dir.isDirectory()){
                 String[] children = dir.list();
                 File f = new File(dir,children[children.length-1]);
-                imageTagger.getTag(context, null, f.getPath(), null, null, false);
+                String[] paths = new String[ImageTagger.NUM_FILES_PASSED];
+                String[] names = new String[ImageTagger.NUM_FILES_PASSED];
+                String[] thumbIds = new String[ImageTagger.NUM_FILES_PASSED];
+                paths[0] = f.getPath();
+                imageTagger.getTag(context, null, paths, null, null,1,false);
                 Log.d("debug","File should delete");
             }
         }

@@ -13,6 +13,7 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.graphics.BitmapFactory;
 import android.graphics.drawable.ColorDrawable;
+import android.media.Image;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Build;
@@ -124,17 +125,48 @@ public class MainActivity extends Activity implements ActionBar.OnNavigationList
         int id = item.getItemId();
         if (id == R.id.action_tag_all) {
             //Tag all the images remaining
-            List<ThumbHolder> holders = getHolders(this, this.getContentResolver());
-            holderList = holders;
-            holdersToHandle = holders.size();
-            if(holders.size() > 0){
-                ThumbHolder h = holders.remove(0);
+            Log.d("TagAll","It is looping over and over again here");
+            String[] filePaths = new String[ImageTagger.NUM_FILES_PASSED];
+            String[] names = new String[ImageTagger.NUM_FILES_PASSED];
+            String[] thumbPaths = new String[ImageTagger.NUM_FILES_PASSED];
+            //List<ThumbHolder> holders = getHolders(this, this.getContentResolver());
+            holderList = getHolders(this,this.getContentResolver());
+            //holderList = holders;
+            holdersToHandle = holderList.size();
+            int num = 0;
+
+            for(int i = 0; i < ImageTagger.NUM_FILES_PASSED; i ++){
+                if(holderList.size() > 0){
+                    ThumbHolder h = holderList.remove(0);
+                    filePaths[i] = h.filePath;
+                    names[i] = h.name;
+                    thumbPaths[i] = h.thumbPath;
+                    num ++;
+                }else{
+                    filePaths[i] = null;
+                    names[i] = null;
+                    thumbPaths[i] = null;
+                }
+            }
+            showDialog();
+            imageTagger.getTag(this,
+                    ((AutotagApp) this.getApplication()).getDatabase(),
+                    filePaths,
+                    names,
+                    thumbPaths,
+                    num,
+                    true);
+            /*
+            if(holderList.size() > 0){
+                ThumbHolder h = holderList.remove(0);
                 holdersToHandle--;
                 imageTagger.getTag(this, ((AutotagApp) this.getApplication()).getDatabase(), h.filePath,
                         h.name, h.thumbPath, true);
                 showDialog();
             }
+            */
             return true;
+
         }
         return super.onOptionsItemSelected(item);
     }
@@ -154,12 +186,35 @@ public class MainActivity extends Activity implements ActionBar.OnNavigationList
     }
 
     @Override
-    public void setTagInfos(ArrayList<TagInfo> tags) { 
-        if(holdersToHandle > 0){
+    public void setTagInfos() {
+
+        if(holderList != null && holderList.size() > 0){
+            /*
             ThumbHolder h = holderList.remove(0);
             holdersToHandle--;
             imageTagger.getTag(this, ((AutotagApp) this.getApplication()).getDatabase(), h.filePath,
                     h.name, h.thumbPath, true);
+            */
+            Log.d("HOLDERS","The holders are not null");
+            String[] filePaths = new String[ImageTagger.NUM_FILES_PASSED];
+            String[] names = new String[ImageTagger.NUM_FILES_PASSED];
+            String[] thumbPaths = new String[ImageTagger.NUM_FILES_PASSED];
+            int num = 0;
+            for(int i = 0; i < ImageTagger.NUM_FILES_PASSED; i ++){
+                if(holderList.size() > 0){
+                    ThumbHolder h = holderList.remove(0);
+                    filePaths[i] = h.filePath;
+                    names[i] = h.name;
+                    thumbPaths[i] = h.thumbPath;
+                    num ++;
+                }else{
+                    filePaths[i] = null;
+                    names[i] = null;
+                    thumbPaths[i] = null;
+                }
+            }
+            showDialog();
+            imageTagger.getTag(this,((AutotagApp) this.getApplication()).getDatabase(),filePaths,names,thumbPaths,num,true);
         } else {
             if (d != null) {
                 d.dismiss();
@@ -387,8 +442,18 @@ public class MainActivity extends Activity implements ActionBar.OnNavigationList
                         files.get(position).hasFired = true;
                         String toUploadPath = files.get(position).filePath;
                         ((MainActivity)context).showDialog();
-                        imageTagger.getTag(context, ((AutotagApp)((MainActivity)context).getApplication()).getDatabase(),
+                        /*
+                        imageTagger.getTag(context, ((AutotagApp) ((MainActivity) context).getApplication()).getDatabase(),
                                 toUploadPath, name, thumbId, true);
+                                */
+                        String[] paths = new String[ImageTagger.NUM_FILES_PASSED];
+                        String[] names = new String[ImageTagger.NUM_FILES_PASSED];
+                        String[] thumbIds = new String[ImageTagger.NUM_FILES_PASSED];
+                        paths[0] = toUploadPath;
+                        names[0] = name;
+                        thumbIds[0] = thumbId;
+                        imageTagger.getTag(context, ((AutotagApp) ((MainActivity) context).getApplication()).getDatabase(),
+                                paths, names, thumbIds, 1, true);
                     }
                 });
                 return convertView;
