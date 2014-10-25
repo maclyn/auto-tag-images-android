@@ -32,7 +32,7 @@ public class ImageTagger {
     private int timeTokenAccessed;
     private List<String> classes;
     private List<Double> probs;
-    private ArrayList<TagInfo> tagInfos = new ArrayList<TagInfo>();
+    //private ArrayList<TagInfo> tagInfos = new ArrayList<TagInfo>();
     private BackGroundTaskListener mListener;
     private CameraActivity cameraActivity;
 
@@ -115,39 +115,51 @@ public class ImageTagger {
             TypedFile typedFile = new TypedFile(type, outputDone);
 
             ClarifaiTagService service = restAdapter.create(ClarifaiTagService.class);
-            service.getTag("Bearer " + accessToken, typedFile,
+            service.getTag("Bearer " + accessToken,
+                    typedFile,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
                 new Callback<CloudTag>() {
                     @Override
                     public void success(CloudTag cloudTag, Response response) {
-                        tagInfos = new ArrayList<TagInfo>();
                         List<Result> results = cloudTag.getResults();
-                        InnerResult innerResult = results.get(0).result;
-                        InnerInnerResult innerInnerResult = innerResult.tag;
-                        classes = innerInnerResult.classes;
-                        probs = innerInnerResult.probs;
-                        for(int i = 0; i < classes.size(); i ++){
-                            TagInfo temp = new TagInfo();
-                            temp.setClasses(classes.get(i));
-                            temp.setProbs(probs.get(i));
-                            tagInfos.add(temp);
-                        }
-                        for(String s : innerInnerResult.classes){
-                            Log.d("debug",s);
-                        }
-                        for(Double d : innerInnerResult.probs){
-                            Log.d("debug",d.toString());
-                        }
+                        //Looping through the results list should get the tags for EACH of the pictures pushed through
+                        for(int k = 0; k < results.size(); k ++) {
+                            ArrayList<TagInfo> tagInfos = new ArrayList<TagInfo>();
+                            InnerResult innerResult = results.get(k).result;
+                            InnerInnerResult innerInnerResult = innerResult.tag;
+                            classes = innerInnerResult.classes;
+                            probs = innerInnerResult.probs;
+                            for (int i = 0; i < classes.size(); i++) {
+                                TagInfo temp = new TagInfo();
+                                temp.setClasses(classes.get(i));
+                                temp.setProbs(probs.get(i));
+                                tagInfos.add(temp);
+                            }
+                            for (String s : innerInnerResult.classes) {
+                                Log.d("debug", s);
+                            }
+                            for (Double d : innerInnerResult.probs) {
+                                Log.d("debug", d.toString());
+                            }
 
-                        if(addToDb) {
-                            DatabaseEditor.addTags(path, name, thumbId, tagInfos, db);
-                            Log.d("debug", "add to db");
-                            mListener.setTagInfos(tagInfos);
-                        }
-                        if(!addToDb){
-                            Log.d("debug", "dont add to db");
-                            cameraActivity.setData(classes);
-                            File f = new File(path);
-                            f.delete();
+                            if (addToDb) {
+                                DatabaseEditor.addTags(path, name, thumbId, tagInfos, db);
+                                Log.d("debug", "add to db");
+                                mListener.setTagInfos(tagInfos);
+                            }
+                            if (!addToDb) {
+                                Log.d("debug", "dont add to db");
+                                cameraActivity.setData(classes);
+                                File f = new File(path);
+                                f.delete();
+                            }
                         }
                     }
 
