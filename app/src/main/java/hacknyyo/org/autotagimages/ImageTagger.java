@@ -12,6 +12,7 @@ import android.webkit.MimeTypeMap;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.List;
 
 import retrofit.Callback;
@@ -27,6 +28,8 @@ public class ImageTagger {
             .setEndpoint("https://api.clarifai.com/v1")
             .build();
     private String accessToken;
+    private int tokenExpiration;
+    private int timeTokenAccessed;
     private List<String> classes;
     private List<Double> probs;
     private ArrayList<TagInfo> tagInfos = new ArrayList<TagInfo>();
@@ -43,7 +46,12 @@ public class ImageTagger {
             @Override
             public void success(Token token, Response response) {
                 accessToken = token.getAccess_token();
+                tokenExpiration = token.getExpires_in();
+                Calendar c = Calendar.getInstance();
+                timeTokenAccessed = c.get(Calendar.SECOND);
                 Log.d("debug",accessToken);
+                Log.d("debug","" + tokenExpiration);
+                Log.d("debug","" + timeTokenAccessed);
             }
 
             @Override
@@ -57,6 +65,12 @@ public class ImageTagger {
     public void getTag(final Context ctx, final SQLiteDatabase db, final String path,
                        final String name, final String thumbId, final boolean addToDb){
         Log.d("debug","In the get tag");
+        Calendar c = Calendar.getInstance();
+        int currentTime = c.get(Calendar.SECOND);
+        Log.d("DEBUG",(currentTime - timeTokenAccessed) + "");
+        if(currentTime - timeTokenAccessed > tokenExpiration){
+            setAccessToken();
+        }
         try {
             mListener = (MainActivity) ctx;
         }catch(ClassCastException e){
@@ -140,6 +154,7 @@ public class ImageTagger {
                     @Override
                     public void failure(RetrofitError error) {
                         Log.d("failure",error.getMessage());
+                        getTag(ctx,db,path,name,thumbId,addToDb);
                     }
                 });
         } catch (Exception e){

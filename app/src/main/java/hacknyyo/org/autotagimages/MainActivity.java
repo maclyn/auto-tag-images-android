@@ -48,7 +48,7 @@ public class MainActivity extends Activity implements ActionBar.OnNavigationList
     private static final String STATE_SELECTED_NAVIGATION_ITEM = "selected_navigation_item";
     private ArrayList<TagInfo> tagInfos;
     Dialog d;
-    public ImageTagger t;
+    public ImageTagger imageTagger;
     SQLiteDatabase db;
 
     List<ThumbHolder> holderList;
@@ -74,8 +74,8 @@ public class MainActivity extends Activity implements ActionBar.OnNavigationList
                                 "Tagged",
                                 "Untagged"
                         }), this);
-        t = new ImageTagger();
-        t.setAccessToken();
+        imageTagger = new ImageTagger();
+        //t.setAccessToken();
     }
 
     @Override
@@ -130,7 +130,7 @@ public class MainActivity extends Activity implements ActionBar.OnNavigationList
             if(holders.size() > 0){
                 ThumbHolder h = holders.remove(0);
                 holdersToHandle--;
-                t.getTag(this, ((AutotagApp) this.getApplication()).getDatabase(), h.filePath,
+                imageTagger.getTag(this, ((AutotagApp) this.getApplication()).getDatabase(), h.filePath,
                         h.name, h.thumbPath, true);
                 showDialog();
             }
@@ -158,7 +158,7 @@ public class MainActivity extends Activity implements ActionBar.OnNavigationList
         if(holdersToHandle > 0){
             ThumbHolder h = holderList.remove(0);
             holdersToHandle--;
-            t.getTag(this, ((AutotagApp) this.getApplication()).getDatabase(), h.filePath,
+            imageTagger.getTag(this, ((AutotagApp) this.getApplication()).getDatabase(), h.filePath,
                     h.name, h.thumbPath, true);
         } else {
             if (d != null) {
@@ -326,16 +326,16 @@ public class MainActivity extends Activity implements ActionBar.OnNavigationList
 
     public static class UntaggedFragment extends Fragment {
         public class PictureAdapter extends BaseAdapter {
-            ImageTagger t;
+            ImageTagger imageTagger;
             List<ThumbHolder> files;
             LayoutInflater li;
             Context context;
 
-            public PictureAdapter(Context context, List<ThumbHolder> files, ImageTagger t) {
+            public PictureAdapter(Context context, List<ThumbHolder> files, ImageTagger imageTagger) {
                 this.context = context;
                 this.files = files;
                 this.li = ((Activity) context).getLayoutInflater();
-                this.t = t;
+                this.imageTagger = imageTagger;
             }
 
             @Override
@@ -387,7 +387,7 @@ public class MainActivity extends Activity implements ActionBar.OnNavigationList
                         files.get(position).hasFired = true;
                         String toUploadPath = files.get(position).filePath;
                         ((MainActivity)context).showDialog();
-                        t.getTag(context, ((AutotagApp)((MainActivity)context).getApplication()).getDatabase(),
+                        imageTagger.getTag(context, ((AutotagApp)((MainActivity)context).getApplication()).getDatabase(),
                                 toUploadPath, name, thumbId, true);
                     }
                 });
@@ -423,7 +423,7 @@ public class MainActivity extends Activity implements ActionBar.OnNavigationList
 
             //We have all the thumbnails; handle it
             PictureAdapter pa = new PictureAdapter(this.getActivity(), realHolders,
-                    ((MainActivity)this.getActivity()).t);
+                    ((MainActivity)this.getActivity()).imageTagger);
             rootView.setAdapter(pa);
             return rootView;
         }

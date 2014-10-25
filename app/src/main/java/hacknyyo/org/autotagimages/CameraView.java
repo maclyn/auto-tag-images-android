@@ -25,6 +25,7 @@ public class CameraView extends SurfaceView implements SurfaceHolder.Callback {
     private String[] fireworks;
     private String[] party;
     private String[] night;
+    public ImageTagger imageTagger;
 
     public CameraView(Context context, Camera camera) {
         super(context);
@@ -42,6 +43,7 @@ public class CameraView extends SurfaceView implements SurfaceHolder.Callback {
         mHolder.addCallback(this);
         // deprecated setting, but required on Android versions prior to 3.0
         mHolder.setType(SurfaceHolder.SURFACE_TYPE_PUSH_BUFFERS);
+        imageTagger = new ImageTagger();
     }
 
     public void surfaceCreated(SurfaceHolder holder) {
@@ -141,7 +143,7 @@ public class CameraView extends SurfaceView implements SurfaceHolder.Callback {
 
     public void takeSmartPicture(boolean isNormal){
         if(mCamera != null){
-            PhotoHandler ph = new PhotoHandler(getContext(),mCamera,isNormal, this);
+            PhotoHandler ph = new PhotoHandler(getContext(),mCamera,isNormal, this, imageTagger);
             mCamera.takePicture(null,null, ph);
             Log.d("debug","Picture taken");
         }

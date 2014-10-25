@@ -5,6 +5,7 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Matrix;
 import android.hardware.Camera;
+import android.media.Image;
 import android.os.Environment;
 import android.util.Log;
 import android.widget.Toast;
@@ -25,16 +26,17 @@ public class PhotoHandler implements Camera.PictureCallback{
     private final Context context;
     private final Camera camera;
     private boolean isNormal;
+    public ImageTagger imageTagger;
     private CameraView cv;
-    ImageTagger it = new ImageTagger();
 
 
-    public PhotoHandler(Context context, Camera c, boolean isNormal, CameraView cameraView) {
+    public PhotoHandler(Context context, Camera c, boolean isNormal, CameraView cameraView, ImageTagger imageTagger) {
         this.context = context;
         this.camera = c;
         this.isNormal = isNormal;
         this.cv = cameraView;
-        it.setAccessToken();
+        this.imageTagger = imageTagger;
+        //it.setAccessToken();
     }
 
     @Override
@@ -94,7 +96,7 @@ public class PhotoHandler implements Camera.PictureCallback{
             if (dir.isDirectory()){
                 String[] children = dir.list();
                 File f = new File(dir,children[children.length-1]);
-                it.getTag(context, null, f.getPath(), null, null, false);
+                imageTagger.getTag(context, null, f.getPath(), null, null, false);
                 Log.d("debug","File should delete");
             }
         }
