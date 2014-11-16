@@ -43,14 +43,15 @@ import com.squareup.picasso.Picasso;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 public class MainActivity extends Activity implements ActionBar.OnNavigationListener, ImageTagger.BackGroundTaskListener {
     public static final String TAG = "MainActivity";
     private static final String STATE_SELECTED_NAVIGATION_ITEM = "selected_navigation_item";
-    private ArrayList<TagInfo> tagInfos;
     Dialog d;
     public ImageTagger imageTagger;
     SQLiteDatabase db;
+    Menu m;
 
     List<ThumbHolder> holderList;
     int holdersToHandle = 0;
@@ -76,7 +77,6 @@ public class MainActivity extends Activity implements ActionBar.OnNavigationList
                                 "Untagged"
                         }), this);
         imageTagger = new ImageTagger();
-        //t.setAccessToken();
     }
 
     @Override
@@ -97,23 +97,25 @@ public class MainActivity extends Activity implements ActionBar.OnNavigationList
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.main, menu);
+        m = menu;
         SearchView sv = (SearchView) menu.findItem(R.id.searchView).getActionView();
         sv.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
-            public boolean onQueryTextSubmit(String query) { //Open an image
+            public boolean onQueryTextSubmit(String query) {
                 return false;
             }
 
             @Override
             public boolean onQueryTextChange(String newText) { //Query and change ListAdapter
-                //Cursor c = db.query(DatabaseHelper.TABLE_TAGS, null, n)
+                ((TaggedFragment) MainActivity.this.getFragmentManager()
+                        .findFragmentById(R.id.container)).setTaggedShow(newText.toLowerCase(Locale.US));
                 return false;
             }
         });
         sv.setOnCloseListener(new SearchView.OnCloseListener() {
             @Override
             public boolean onClose() { //Reset view
-                ((TaggedFragment) MainActivity.this.getFragmentManager().findFragmentById(R.id.container)).setTaggedShow();
+                ((TaggedFragment) MainActivity.this.getFragmentManager().findFragmentById(R.id.container)).setTaggedShow(null);
                 return false;
             }
         });
@@ -129,9 +131,7 @@ public class MainActivity extends Activity implements ActionBar.OnNavigationList
             String[] filePaths = new String[ImageTagger.NUM_FILES_PASSED];
             String[] names = new String[ImageTagger.NUM_FILES_PASSED];
             String[] thumbPaths = new String[ImageTagger.NUM_FILES_PASSED];
-            //List<ThumbHolder> holders = getHolders(this, this.getContentResolver());
             holderList = getHolders(this,this.getContentResolver());
-            //holderList = holders;
             holdersToHandle = holderList.size();
             int num = 0;
 
@@ -158,15 +158,6 @@ public class MainActivity extends Activity implements ActionBar.OnNavigationList
                         num,
                         true);
             }
-            /*
-            if(holderList.size() > 0){
-                ThumbHolder h = holderList.remove(0);
-                holdersToHandle--;
-                imageTagger.getTag(this, ((AutotagApp) this.getApplication()).getDatabase(), h.filePath,
-                        h.name, h.thumbPath, true);
-                showDialog();
-            }
-            */
             return true;
 
         }
@@ -189,14 +180,7 @@ public class MainActivity extends Activity implements ActionBar.OnNavigationList
 
     @Override
     public void setTagInfos() {
-
         if(holderList != null && holderList.size() > 0){
-            /*
-            ThumbHolder h = holderList.remove(0);
-            holdersToHandle--;
-            imageTagger.getTag(this, ((AutotagApp) this.getApplication()).getDatabase(), h.filePath,
-                    h.name, h.thumbPath, true);
-            */
             Log.d("HOLDERS","The holders are not null");
             String[] filePaths = new String[ImageTagger.NUM_FILES_PASSED];
             String[] names = new String[ImageTagger.NUM_FILES_PASSED];
@@ -345,11 +329,13 @@ public class MainActivity extends Activity implements ActionBar.OnNavigationList
                                  Bundle savedInstanceState) {
             ListView rootView = (ListView) inflater.inflate(R.layout.fragment_tagged, container, false);
             view = rootView;
-            setTaggedShow();
+            ((MainActivity)this.getActivity()).m.findItem(R.id.searchView).setVisible(true);
+            ((MainActivity)this.getActivity()).m.findItem(R.id.action_tag_all).setVisible(false);
+            setTaggedShow(null);
             return rootView;
         }
 
-        public void setTaggedShow(){
+        public void setTaggedShow(final String filter){
             SQLiteDatabase database = ((AutotagApp) this.getActivity().getApplication()).getDatabase();
             new AsyncTask<Object, Void, TagAdapter>() {
                 @Override
@@ -361,8 +347,16 @@ public class MainActivity extends Activity implements ActionBar.OnNavigationList
                         int nameColumn = c.getColumnIndex(DatabaseHelper.COLUMN_TAG_NAME);
                         int fileColumn = c.getColumnIndex(DatabaseHelper.COLUMN_FILE_PATHS);
                         while(!c.isAfterLast()){
-                            tags.add(new Tag(DatabaseEditor.fromImageLink(c.getString(fileColumn)),
-                                    c.getString(nameColumn)));
+                            if(filter == null) {
+                                tags.add(new Tag(DatabaseEditor.fromImageLink(c.getString(fileColumn)),
+                                        c.getString(nameColumn)));
+                            } else {
+                                String name = c.getString(nameColumn);
+                                if(name.contains(filter)){
+                                    tags.add(new Tag(DatabaseEditor.fromImageLink(c.getString(fileColumn)),
+                                            name));
+                                }
+                            }
                             c.moveToNext();
                         }
                     }
@@ -485,6 +479,9 @@ public class MainActivity extends Activity implements ActionBar.OnNavigationList
                                  Bundle savedInstanceState) {
             ListView rootView = (ListView) inflater.inflate(R.layout.fragment_tagged, container, false);
 
+            ((MainActivity)this.getActivity()).m.findItem(R.id.searchView).setVisible(false);
+            ((MainActivity)this.getActivity()).m.findItem(R.id.action_tag_all).setVisible(true);
+
             List<ThumbHolder> realHolders = getHolders(getActivity(),
                     getActivity().getContentResolver());
 
@@ -549,6 +546,8 @@ public class MainActivity extends Activity implements ActionBar.OnNavigationList
                 cs.moveToNext();
             }
         }
+        cs.close();
+
 
         List<ThumbHolder> realHolders = new ArrayList<ThumbHolder>();
         for(ThumbHolder thumbHolder : thl){

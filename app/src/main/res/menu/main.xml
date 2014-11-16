@@ -6,10 +6,12 @@
         android:icon="@drawable/ic_action_search"
         android:showAsAction="collapseActionView|ifRoom"
         android:actionViewClass="android.widget.SearchView" />
+    <!--
     <item android:id="@+id/action_test"
         android:title="Debug Function"
         android:orderInCategory="2"
         android:showAsAction="never" />
+     -->
     <item android:id="@+id/action_tag_all"
         android:title="Tag All"
         android:orderInCategory="3"
